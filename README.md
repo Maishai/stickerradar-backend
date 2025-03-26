@@ -17,7 +17,9 @@ curl -X POST \
     -F "lat=40.7121" \
     -F "lon=70.1212" \
     -F "image=@/home/simon/Bilder/Wallpapers/bryggen.jpg" \
-    -F "tag=1" \
+    -F "tag[]=1" \
+    -F "tag[]=2" \
+    -F "tag[]=3" \
     "http://localhost:8000/api/stickers"
 ```
 

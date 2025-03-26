@@ -29,7 +29,8 @@ class StickerController extends Controller
             'lat' => 'required|numeric|min:-90|max:90',
             'lon' => 'required|numeric|min:-180|max:180',
             'image' => 'required|image|mimes:jpg,jpeg,png,gif|max:4096',
-            'tag' => 'required|exists:tags,id'
+            'tag' => 'required|array',
+            'tag.*' => 'exists:tags,id',
         ]);
 
         $image = $validated['image'];
@@ -37,7 +38,10 @@ class StickerController extends Controller
         $filename = Str::uuid() . '.' . $extension;
         $validated['filename'] = $filename;
         $sticker = Sticker::create(Arr::except($validated, ['image', 'tag']));
-        $sticker->tags()->attach($validated['tag']);
+
+        foreach ($validated['tag'] as $tagId) {
+            $sticker->tags()->attach($tagId);
+        }
 
         Storage::disk('public')->putFileAs('stickers', $image, $filename);
 
