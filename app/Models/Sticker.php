@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Model;
 
 class Sticker extends Model
 {
-    protected $fillable = ['lat','lon','last_seen'];
+    protected $fillable = ['lat', 'lon', 'last_seen', 'filename'];
 
     public function tags(): BelongsToMany
     {

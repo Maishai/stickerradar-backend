@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sticker;
+use App\Models\Tag;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class StickerController extends Controller
 {
@@ -22,14 +26,21 @@ class StickerController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'lat' => 'required|double|min:-90|max:90',
-            'lon' => 'required|double|min:-180|max:180',
-            'image' => 'required|image',
-            'tag' => 'required|exists:tags'
+            'lat' => 'required|numeric|min:-90|max:90',
+            'lon' => 'required|numeric|min:-180|max:180',
+            'image' => 'required|image|mimes:jpg,jpeg,png,gif|max:4096',
+            'tag' => 'required|exists:tags,id'
         ]);
+
         $image = $validated['image'];
-        unset($validated['image']);
-        $sticker = Sticker::create($validated);
+        $extension = $image->getClientOriginalExtension();
+        $filename = Str::uuid() . '.' . $extension;
+        $validated['filename'] = $filename;
+        $sticker = Sticker::create(Arr::except($validated, ['image', 'tag']));
+        $sticker->tags()->attach($validated['tag']);
+
+        Storage::disk('public')->putFileAs('stickers', $image, $filename);
+
         return $sticker;
     }
 

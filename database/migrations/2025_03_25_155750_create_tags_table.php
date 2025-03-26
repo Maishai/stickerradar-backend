@@ -18,10 +18,10 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        Schema::create('tag_sticker', function (Blueprint $table) {
+        Schema::create('sticker_tag', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('tag')->constrained()->onDelete('cascade');
-            $table->foreignId('sticker')->constrained()->onDelete('cascade');
+            $table->foreignId('tag_id')->constrained()->onDelete('cascade');
+            $table->foreignId('sticker_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

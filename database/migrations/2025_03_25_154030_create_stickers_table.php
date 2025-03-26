@@ -3,6 +3,7 @@
 use App\State;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
@@ -13,10 +14,11 @@ return new class extends Migration {
     {
         Schema::create('stickers', function (Blueprint $table) {
             $table->id();
-            $table->double("lat");
-            $table->double("lon");
-            $table->enum("state", array_column(State::cases(), 'value'))->default(State::EXISTS);
-            $table->date('last_seen');
+            $table->double('lat');
+            $table->double('lon');
+            $table->enum('state', array_column(State::cases(), 'value'))->default(State::EXISTS);
+            $table->date('last_seen')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->string('filename');
             $table->timestamps();
         });
     }
