@@ -14,9 +14,19 @@ class StickerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $stickers = Sticker::all();
+        $query = Sticker::query();
+
+        if ($request->has('min_lat') && $request->has('max_lat')) {
+            $query->whereBetween('lat', [$request->query('min_lat'), $request->query('max_lat')]);
+        }
+
+        if ($request->has('min_lon') && $request->has('max_lon')) {
+            $query->whereBetween('lon', [$request->query('min_lon'), $request->query('max_lon')]);
+        }
+
+        $stickers = $query->get();
         return $stickers->toJson();
     }
 
