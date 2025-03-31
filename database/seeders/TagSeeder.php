@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Tag;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class TagSeeder extends Seeder
 {
@@ -12,21 +12,26 @@ class TagSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('tags')->insert([
-            [
-                'name' => 'Links',
-                'super_tag' => null,
-                'color' => '#FF0000',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Fußball',
-                'super_tag' => null,
-                'color' => '#00FF00',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]
+        $politics = Tag::create([
+            'name' => 'Politik',
+            'color' => '#EE82EE'
+        ]);
+
+        $sports = Tag::create([
+            'name' => 'Sport',
+            'color' => '#F5FF00'
+        ]);
+
+        Tag::create([
+            'name' => 'Links',
+            'super_tag' => $politics->id,
+            'color' => '#FF0000',
+        ]);
+
+        Tag::create([
+            'name' => 'Fußball',
+            'super_tag' => $sports->id,
+            'color' => '#00FF00',
         ]);
     }
 }

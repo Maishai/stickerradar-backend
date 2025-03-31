@@ -2,15 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Tag extends Model
 {
-    protected $fillable = ['name','super_tag','color'];
+    use HasUuids;
 
-    public function superTag(): HasOne
+    protected $fillable = ['name', 'super_tag', 'color'];
+
+    public function superTag(): BelongsTo
     {
-        return $this->hasOne(Tag::class);
+        return $this->belongsTo(Tag::class, 'super_tag');
+    }
+
+    public function subTags(): HasMany
+    {
+        return $this->hasMany(Tag::class, 'super_tag');
     }
 }

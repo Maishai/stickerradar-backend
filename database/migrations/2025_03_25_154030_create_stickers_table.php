@@ -13,7 +13,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('stickers', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->double('lat');
             $table->double('lon');
             $table->enum('state', array_column(State::cases(), 'value'))->default(State::EXISTS);

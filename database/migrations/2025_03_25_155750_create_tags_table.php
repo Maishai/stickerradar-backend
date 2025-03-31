@@ -11,17 +11,20 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('tags', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('name')->unique();
-            $table->foreignId('super_tag')->nullable();
+            $table->uuid('super_tag')->nullable();
             $table->string('color');
             $table->timestamps();
         });
 
+        Schema::table('tags', function (Blueprint $table) {
+            $table->foreign('super_tag')->references('id')->on('tags')->onDelete('set null');
+        });
+
         Schema::create('sticker_tag', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('tag_id')->constrained()->onDelete('cascade');
-            $table->foreignId('sticker_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('tag_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('sticker_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }
