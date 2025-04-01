@@ -27,5 +27,9 @@ curl -X POST \
 
 ### Filesize Limits
 
-If you encounter problems uploading images, you might need to adjust your *upload_max_filesize* in `/etc/php/php.ini`.
+If you encounter problems uploading images, you might need to adjust your _upload_max_filesize_ in your `php.ini`.
+You can find the file with `php --ini`.
 
+### Stored Files can't be accessed
+
+You need to link your storage by executing `php artisan storage:link` to create a symlink to your local storage.
