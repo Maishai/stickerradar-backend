@@ -1,4 +1,7 @@
 @import 'tailwindcss';
+
+@import '../../vendor/wireui/wireui/ts/global.css';
+@source '../../vendor/wireui/wireui';
 @import '../../vendor/livewire/flux/dist/flux.css';
 
 @source '../views';
