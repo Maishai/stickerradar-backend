@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sticker;
-use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
-class StickerController extends Controller
+class StickerApiController extends Controller
 {
     /**
      * Display a listing of the resource.
