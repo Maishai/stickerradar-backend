@@ -2,17 +2,10 @@ FROM dunglas/frankenphp
 
 # Add additional extensions here:
 RUN install-php-extensions \
-    pdo_mysql \
-    pdo_sqlite \
-    sqlite3 \
-    gd \
-    intl \
-    zip \
-    opcache \
     exif
 
 # Be sure to replace "your-domain-name.example.com" by your domain name
-ENV SERVER_NAME=404simon.de
+ENV SERVER_NAME=stickerradar.404simon.de
 # If you want to disable HTTPS, use this value instead:
 #ENV SERVER_NAME=:80
 
