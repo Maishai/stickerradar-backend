@@ -28,7 +28,7 @@ class ImageUpload extends Component
     public function updatedPhoto()
     {
         $this->validate([
-            'photo' => 'image|max:4096',
+            'photo' => 'required|image|mimes:jpg,jpeg,png,gif|max:4096',
         ]);
 
         // Reset coordinates and error state
@@ -82,7 +82,7 @@ class ImageUpload extends Component
     public function save()
     {
         $this->validate([
-            'photo' => 'required|image|max:4096',
+            'photo' => 'required|image|mimes:jpg,jpeg,png,gif|max:4096',
             'lat' => 'required|numeric|min:-90|max:90',
             'lon' => 'required|numeric|min:-180|max:180',
             'selectedTags' => 'required|array',
@@ -90,7 +90,7 @@ class ImageUpload extends Component
         ]);
 
         $extension = $this->photo->getClientOriginalExtension();
-        $filename = Str::uuid().'.'.$extension;
+        $filename = Str::uuid() . '.' . $extension;
 
         // Create sticker record
         $sticker = Sticker::create([
@@ -108,7 +108,8 @@ class ImageUpload extends Component
         Storage::disk('public')->putFileAs('stickers', $this->photo, $filename);
 
         // Redirect to preview page instead of resetting form
-        return redirect()->route('stickers.preview', ['sticker' => $sticker->id])
+        return redirect()
+            ->route('stickers.preview', ['sticker' => $sticker->id])
             ->with('message', 'Sticker uploaded successfully!');
     }
 
