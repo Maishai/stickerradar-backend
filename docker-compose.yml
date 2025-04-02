@@ -1,0 +1,15 @@
+services:
+  php:
+    build: .
+    restart: always
+      #user: "1000:1000"
+    ports:
+      - "80:80" # HTTP
+      - "443:443" # HTTPS
+      - "443:443/udp" # HTTP/3
+    volumes:
+      - ./caddy/caddy_data:/data
+      - ./caddy/caddy_config:/config
+      - ./storage:/app/storage
+      - ./database/database.sqlite:/app/database/database.sqlite
+    

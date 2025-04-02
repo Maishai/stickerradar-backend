@@ -1,21 +1,26 @@
-FROM php:8.4-cli
+FROM dunglas/frankenphp
 
-WORKDIR /var/www/html
+# Add additional extensions here:
+RUN install-php-extensions \
+    pdo_mysql \
+    pdo_sqlite \
+    sqlite3 \
+    gd \
+    intl \
+    zip \
+    opcache \
+    exif
 
-RUN apt-get update && apt-get install -y \
-    zip unzip curl git libpng-dev libjpeg-dev libfreetype6-dev libpq-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo_pgsql opcache pcntl \
-    && pecl install swoole && docker-php-ext-enable swoole
+# Be sure to replace "your-domain-name.example.com" by your domain name
+ENV SERVER_NAME=404simon.de
+# If you want to disable HTTPS, use this value instead:
+#ENV SERVER_NAME=:80
 
-# Install Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Increase PHP file upload limits
-RUN echo "upload_max_filesize=64M" > /usr/local/etc/php/conf.d/uploads.ini \
-    && echo "post_max_size=64M" >> /usr/local/etc/php/conf.d/uploads.ini
+# If you use Symfony or Laravel, you need to copy the whole project instead:
+COPY . /app
 
-COPY . .
+# Enable PHP production settings
+RUN mv "/app/php.ini.prod" "$PHP_INI_DIR/php.ini"
 
-RUN composer install --no-dev --optimize-autoloader
-RUN chmod -R 777 storage bootstrap/cache
+RUN php artisan storage:link
