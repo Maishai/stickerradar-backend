@@ -41,7 +41,7 @@ class StickerService
     /**
      * Create a thumbnail for the given image
      */
-    private function createThumbnail(string $filename, string $filepath): void
+    public function createThumbnail(string $filename, string $filepath): void
     {
         logger("Creating thumbnail for $filename");
         Storage::disk('public')->makeDirectory('stickers/thumbnails');
