@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Sticker;
+use App\State;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -13,7 +14,7 @@ class StickerService
     /**
      * Create a new sticker with the given data and image
      */
-    public function createSticker(array $data, UploadedFile $imageFile, array $tagIds): Sticker
+    public function createSticker(array $data, UploadedFile $imageFile, array $tagIds, State $state = State::EXISTS): Sticker
     {
         $extension = $imageFile->getClientOriginalExtension();
         $filename = Str::uuid().'.'.$extension;
@@ -22,6 +23,7 @@ class StickerService
             'lat' => $data['lat'],
             'lon' => $data['lon'],
             'filename' => $filename,
+            'state' => $state
         ]);
 
         foreach ($tagIds as $tagId) {

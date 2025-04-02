@@ -107,6 +107,17 @@
                     @enderror
                 </div>
 
+
+                    <div class="mt-4">
+                        <x-select label="State" placeholder="Select a state" :options="\App\State::cases()"
+                                  option-label="name" option-value="value" wire:model.defer="selectedState" class="w-full" />
+                        @error('selectedState')
+                        <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+
+
                 <div class="flex justify-end mt-6">
                     <x-button type="submit" primary label="Upload" right-icon="arrow-up-tray" />
                 </div>

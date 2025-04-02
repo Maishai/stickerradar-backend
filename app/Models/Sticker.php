@@ -10,7 +10,7 @@ class Sticker extends Model
 {
     use HasUlids;
 
-    protected $fillable = ['lat', 'lon', 'last_seen', 'filename'];
+    protected $fillable = ['lat', 'lon', 'last_seen', 'filename', 'state'];
 
     public function tags(): BelongsToMany
     {

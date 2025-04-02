@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Tag;
 use App\Services\StickerService;
 use Livewire\Attributes\Title;
+use App\State;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -22,6 +23,8 @@ class ImageUpload extends Component
     public $tags = [];
 
     public $selectedTags = [];
+
+    public $selectedState = State::EXISTS;
 
     public $noCoordinatesError = false;
 
@@ -61,6 +64,7 @@ class ImageUpload extends Component
             'lon' => 'required|numeric|min:-180|max:180',
             'selectedTags' => 'required|array',
             'selectedTags.*' => 'exists:tags,id',
+            'selectedState' => 'required|in:' . implode(',', array_column(State::cases(), 'value')),
         ]);
 
         $data = [
@@ -71,7 +75,8 @@ class ImageUpload extends Component
         $sticker = $this->stickerService->createSticker(
             $data,
             $this->photo,
-            $this->selectedTags
+            $this->selectedTags,
+            $this->selectedState
         );
 
         return redirect()
