@@ -21,6 +21,8 @@ class TagsComponent extends Component
 
     public array $tags = [];
 
+    public $decodedTagTree;
+
     public function mount()
     {
         $this->tags = Tag::all()->toArray();
@@ -28,6 +30,7 @@ class TagsComponent extends Component
         $this->tagTrees = Tag::buildTrees();
         $this->rootNodeNames = $this->tagTrees->pluck('name');
         $this->selectedRootName = $this->rootNodeNames->first();
+        $this->decodeTagTree();
     }
 
     public function saveTag()
@@ -53,6 +56,17 @@ class TagsComponent extends Component
     public function getSelectedTagTreeProperty()
     {
         return json_encode(collect($this->tagTrees->firstWhere('name', $this->selectedRootName)));
+    }
+
+    public function decodeTagTree()
+    {
+        $jsonString = $this->getSelectedTagTreeProperty();
+        $this->decodedTagTree = json_decode($jsonString, true);
+    }
+
+    public function updatedSelectedRootName()
+    {
+        $this->decodeTagTree();
     }
 
     public function render()
