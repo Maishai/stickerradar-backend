@@ -4,9 +4,11 @@ namespace App\Livewire;
 
 use App\Models\Tag;
 use App\Services\StickerService;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
+#[Title('Upload Image')]
 class ImageUpload extends Component
 {
     use WithFileUploads;

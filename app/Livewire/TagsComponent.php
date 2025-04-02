@@ -3,8 +3,10 @@
 namespace App\Livewire;
 
 use App\Models\Tag;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Title('Tags')]
 class TagsComponent extends Component
 {
     public string $name = '';

@@ -4,9 +4,11 @@ namespace App\Livewire;
 
 use App\Models\Sticker;
 use App\Models\Tag;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
+#[Title('Sticker Gallery')]
 class StickerPreview extends Component
 {
     use WithPagination;
@@ -34,7 +36,7 @@ class StickerPreview extends Component
         $query = Sticker::query()->with('tags');
 
         // Filter by selected tags if any
-        if (! empty($this->selectedTags)) {
+        if (!empty($this->selectedTags)) {
             $query->whereHas('tags', function ($q) {
                 $q->whereIn('tags.id', $this->selectedTags);
             }, '=', count($this->selectedTags));
