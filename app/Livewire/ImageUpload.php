@@ -6,6 +6,7 @@ use App\Models\Sticker;
 use App\Models\Tag;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\Laravel\Facades\Image;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -90,7 +91,7 @@ class ImageUpload extends Component
         ]);
 
         $extension = $this->photo->getClientOriginalExtension();
-        $filename = Str::uuid() . '.' . $extension;
+        $filename = Str::uuid().'.'.$extension;
 
         // Create sticker record
         $sticker = Sticker::create([
@@ -106,8 +107,16 @@ class ImageUpload extends Component
 
         // Store the image
         Storage::disk('public')->putFileAs('stickers', $this->photo, $filename);
+        $filepath = Storage::disk('public')->path('stickers/'.$filename);
 
-        // Redirect to preview page instead of resetting form
+        defer(function () use ($filename, $filepath) {
+            logger("Creating thumbnail for $filename");
+            Storage::disk('public')->makeDirectory('stickers/thumbnails');
+            $image = Image::read($filepath)
+                ->scale(width: 400)
+                ->save(Storage::disk('public')->path('stickers/thumbnails/'.$filename));
+        });
+
         return redirect()
             ->route('stickers.preview', ['sticker' => $sticker->id])
             ->with('message', 'Sticker uploaded successfully!');

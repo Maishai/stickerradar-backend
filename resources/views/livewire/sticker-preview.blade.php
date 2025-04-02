@@ -10,7 +10,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 @forelse($stickers as $sticker)
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/30 overflow-hidden">
-                        <img src="{{ asset('storage/stickers/' . $sticker->filename) }}" alt="Sticker"
+                        <img src="{{ asset('storage/stickers/thumbnails/' . $sticker->filename) }}" alt="Sticker"
                             class="w-full h-48 object-cover">
                         <div class="p-4">
                             <div class="mb-2 text-xs text-gray-600 dark:text-gray-400">
@@ -35,6 +35,9 @@
                         <p>No stickers found with the selected filters.</p>
                     </div>
                 @endforelse
+            </div>
+            <div class="mt-6">
+                {{ $stickers->links() }}
             </div>
         </div>
     </div>

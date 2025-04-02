@@ -5,14 +5,19 @@ namespace App\Livewire;
 use App\Models\Sticker;
 use App\Models\Tag;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class StickerPreview extends Component
 {
+    use WithPagination;
+
     public $tags = [];
 
     public $selectedTags = [];
 
-    public $searchQuery = '';
+    public $perPage = 12;
+
+    protected $queryString = ['selectedTags'];
 
     public function mount()
     {
@@ -20,11 +25,6 @@ class StickerPreview extends Component
     }
 
     public function updatedSelectedTags()
-    {
-        $this->resetPage();
-    }
-
-    public function updatedSearchQuery()
     {
         $this->resetPage();
     }
@@ -40,7 +40,7 @@ class StickerPreview extends Component
             }, '=', count($this->selectedTags));
         }
 
-        return $query->latest()->get();
+        return $query->latest()->paginate($this->perPage);
     }
 
     public function render()
