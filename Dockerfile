@@ -2,7 +2,8 @@ FROM dunglas/frankenphp
 
 # Add additional extensions here:
 RUN install-php-extensions \
-    exif
+    exif \
+    gd
 
 # Be sure to replace "your-domain-name.example.com" by your domain name
 ENV SERVER_NAME=stickerradar.404simon.de
