@@ -2,11 +2,8 @@
 
 namespace App\Livewire;
 
-use App\Models\Sticker;
 use App\Models\Tag;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Intervention\Image\Laravel\Facades\Image;
+use App\Services\StickerService;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -26,6 +23,13 @@ class ImageUpload extends Component
 
     public $noCoordinatesError = false;
 
+    protected StickerService $stickerService;
+
+    public function boot(StickerService $stickerService)
+    {
+        $this->stickerService = $stickerService;
+    }
+
     public function updatedPhoto()
     {
         $this->validate([
@@ -37,47 +41,14 @@ class ImageUpload extends Component
         $this->lon = null;
         $this->noCoordinatesError = false;
 
-        $exif = @exif_read_data($this->photo->getRealPath());
-        $latRaw = $exif['GPSLatitude'] ?? null;
-        $lonRaw = $exif['GPSLongitude'] ?? null;
-        $latRef = $exif['GPSLatitudeRef'] ?? 'N';
-        $lonRef = $exif['GPSLongitudeRef'] ?? 'E';
+        $coordinates = $this->stickerService->extractCoordinatesFromExif($this->photo);
 
-        if ($latRaw && $lonRaw) {
-            $this->lat = $this->convertDMSToDecimal($latRaw[0], $latRaw[1], $latRaw[2], $latRef);
-            $this->lon = $this->convertDMSToDecimal($lonRaw[0], $lonRaw[1], $lonRaw[2], $lonRef);
+        if ($coordinates) {
+            $this->lat = $coordinates['lat'];
+            $this->lon = $coordinates['lon'];
         } else {
             $this->noCoordinatesError = true;
         }
-    }
-
-    private function convertDMSToDecimal($degrees, $minutes, $seconds, $direction)
-    {
-        // Convert fractions to decimal values
-        $degrees = $this->convertToDecimal($degrees);
-        $minutes = $this->convertToDecimal($minutes);
-        $seconds = $this->convertToDecimal($seconds);
-
-        // Calculate decimal degrees
-        $decimal = $degrees + ($minutes / 60) + ($seconds / 3600);
-
-        // Apply negative value for South or West coordinates
-        if ($direction == 'S' || $direction == 'W') {
-            $decimal = -$decimal;
-        }
-
-        return $decimal;
-    }
-
-    private function convertToDecimal($fraction)
-    {
-        if (strpos($fraction, '/') !== false) {
-            [$numerator, $denominator] = explode('/', $fraction);
-
-            return $numerator / $denominator;
-        }
-
-        return $fraction;
     }
 
     public function save()
@@ -90,32 +61,16 @@ class ImageUpload extends Component
             'selectedTags.*' => 'exists:tags,id',
         ]);
 
-        $extension = $this->photo->getClientOriginalExtension();
-        $filename = Str::uuid().'.'.$extension;
-
-        // Create sticker record
-        $sticker = Sticker::create([
+        $data = [
             'lat' => $this->lat,
             'lon' => $this->lon,
-            'filename' => $filename,
-        ]);
+        ];
 
-        // Attach tags to sticker
-        foreach ($this->selectedTags as $tagId) {
-            $sticker->tags()->attach($tagId);
-        }
-
-        // Store the image
-        Storage::disk('public')->putFileAs('stickers', $this->photo, $filename);
-        $filepath = Storage::disk('public')->path('stickers/'.$filename);
-
-        defer(function () use ($filename, $filepath) {
-            logger("Creating thumbnail for $filename");
-            Storage::disk('public')->makeDirectory('stickers/thumbnails');
-            $image = Image::read($filepath)
-                ->scale(width: 400)
-                ->save(Storage::disk('public')->path('stickers/thumbnails/'.$filename));
-        });
+        $sticker = $this->stickerService->createSticker(
+            $data,
+            $this->photo,
+            $this->selectedTags
+        );
 
         return redirect()
             ->route('stickers.preview', ['sticker' => $sticker->id])

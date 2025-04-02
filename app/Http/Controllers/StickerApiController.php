@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sticker;
+use App\Services\StickerService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 
 class StickerApiController extends Controller
 {
+    protected StickerService $stickerService;
+
+    public function __construct(StickerService $stickerService)
+    {
+        $this->stickerService = $stickerService;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -26,6 +31,7 @@ class StickerApiController extends Controller
         }
 
         $stickers = $query->get();
+
         return $stickers->toJson();
     }
 
@@ -42,19 +48,16 @@ class StickerApiController extends Controller
             'tag.*' => 'exists:tags,id',
         ]);
 
-        $image = $validated['image'];
-        $extension = $image->getClientOriginalExtension();
-        $filename = Str::uuid() . '.' . $extension;
-        $validated['filename'] = $filename;
-        $sticker = Sticker::create(Arr::except($validated, ['image', 'tag']));
+        $data = [
+            'lat' => $validated['lat'],
+            'lon' => $validated['lon'],
+        ];
 
-        foreach ($validated['tag'] as $tagId) {
-            $sticker->tags()->attach($tagId);
-        }
-
-        Storage::disk('public')->putFileAs('stickers', $image, $filename);
-
-        return $sticker;
+        return $this->stickerService->createSticker(
+            $data,
+            $validated['image'],
+            $validated['tag']
+        );
     }
 
     /**
