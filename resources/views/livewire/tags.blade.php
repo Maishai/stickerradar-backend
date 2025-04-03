@@ -79,62 +79,6 @@
                             </div>
                         </div>
                     </div>
-                    <style>
-                        .tree-node {
-                            position: relative;
-                            padding-left: 20px;
-                            /* Indentation for children */
-                        }
-
-                        .tree-node::before {
-                            content: "";
-                            position: absolute;
-                            top: 10px;
-                            /* Adjust as needed to center the line vertically */
-                            left: 0;
-                            border-left: 1px solid gray;
-                            /* Vertical line */
-                            height: 100%;
-                            width: 1px;
-                        }
-
-                        .tree-node::after {
-                            content: "";
-                            position: absolute;
-                            top: 10px;
-                            /* Match the top of the vertical line */
-                            left: 0;
-                            border-top: 1px solid gray;
-                            /* Horizontal line connecting to the node */
-                            width: 10px;
-                            /* Length of the horizontal line */
-                        }
-
-                        .node-content {
-                            display: inline-block;
-                            padding: 4px 10px;
-                            background-color: #f5f5f5;
-                            border: 2px solid #bbb;
-                            border-radius: 6px;
-                            font-size: 14px;
-                            font-weight: 500;
-                            transition: all 0.3s ease-in-out;
-                            color: black;
-                            margin-bottom: 2px;
-                        }
-
-                        .tree-node:last-child::before {
-                            height: 10px;
-                            /* Shorten the vertical line for the last child */
-                        }
-
-                        .tree-node ul {
-                            list-style-type: none;
-                            padding-left: 20px;
-                            margin-left: 10px;
-                            /* Adjust to align with the horizontal line */
-                        }
-                    </style>
                 </div>
             </div>
 
