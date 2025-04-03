@@ -23,7 +23,7 @@ class TagsComponent extends Component
 
     public array $tags = [];
 
-    public $tag = null; //Selected tag
+    public $tag = null;  // Selected tag
 
     public $decodedTagTree;
 
