@@ -189,7 +189,7 @@
             popupContent = document.createElement('div');
             popupContent.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center;">
-                    <img src="{{ asset('storage/stickers/' . $sticker->filename) }}" style="max-width: 200px; height: auto; margin-bottom: 10px;">
+                    <img src="{{ asset('storage/stickers/thumbnails/' . $sticker->filename) }}" style="max-width: 200px; height: auto; margin-bottom: 10px;">
                     <div>
                         @foreach ($sticker->tags as $tag)
                             <span class="tag" style="background-color: {{ $tag->color }};">{{ $tag->name }}</span>
