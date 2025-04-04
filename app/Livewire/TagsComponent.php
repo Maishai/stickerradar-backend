@@ -57,29 +57,6 @@ class TagsComponent extends Component
         session()->flash('success', 'Tag created successfully!');
     }
 
-    public function deleteTag()
-    {
-        $validated = $this->validate([
-            'tag' => 'required|exists:tags,id',
-        ]);
-
-        $tag = Tag::findOrFail($validated['tag']);
-        // Check if any tag with this tag as super_tag exists
-        for ($i = 0; $i < count($this->tags); $i++) {
-            if ($this->tags[$i]['super_tag'] == $tag->id) {
-                session()->flash('delete_error', 'Cannot delete this tag as it is a super tag for other tags!');
-                return;
-            }
-        }
-        $tag->delete();
-
-        $this->tags = Tag::all()->toArray();
-        $this->tagTrees = Tag::buildTrees();
-        $this->rootNodeNames = $this->tagTrees->pluck('name');
-
-        session()->flash('delete_success', 'Tag deleted successfully!');
-    }
-
     public function getSelectedTagTreeProperty()
     {
         return json_encode(collect($this->tagTrees->firstWhere('name', $this->selectedRootName)));
