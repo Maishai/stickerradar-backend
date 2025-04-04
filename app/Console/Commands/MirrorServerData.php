@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Sticker;
 use App\Models\Tag;
+use App\Services\StickerService;
 use GuzzleHttp\Promise\Each;
 use Illuminate\Console\Command;
 use Illuminate\Http\Client\Pool;
@@ -76,7 +77,7 @@ class MirrorServerData extends Command
             }
         });
 
-        $this->info('Mirroring ' . count($stickers) . ' sticker images. This may take a while...');
+        $this->info('Mirroring ' . count($stickers) . ' sticker images and generating thumbnails. This may take a while...');
 
         $bar = $this->output->createProgressBar(count($stickers));
 
@@ -97,6 +98,8 @@ class MirrorServerData extends Command
                                 ->get($imagePath)
                                 ->then(function ($response) use ($filename, $bar) {
                                     Storage::disk('public')->put("stickers/$filename", $response->body());
+                                    $storedImagePath = Storage::disk('public')->path("stickers/$filename");
+                                    StickerService::createThumbnail($filename, $storedImagePath);
                                     $bar->advance();
                                 });
                         }
@@ -108,8 +111,6 @@ class MirrorServerData extends Command
 
         $bar->finish();
         $this->newLine();
-        $this->info('Done fetching ' . count($stickers) . ' sticker images. Generating Thumbnails...');
-
-        $this->call(GenerateMissingThumbnails::class);
+        $this->info('Done mirroring server state 🤌🏻');
     }
 }

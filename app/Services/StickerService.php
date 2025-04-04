@@ -17,7 +17,7 @@ class StickerService
     public function createSticker(array $data, UploadedFile $imageFile, array $tagIds, State $state = State::EXISTS): Sticker
     {
         $extension = $imageFile->getClientOriginalExtension();
-        $filename = Str::uuid().'.'.$extension;
+        $filename = Str::uuid() . '.' . $extension;
 
         $sticker = Sticker::create([
             'lat' => $data['lat'],
@@ -31,7 +31,7 @@ class StickerService
         }
 
         Storage::disk('public')->putFileAs('stickers', $imageFile, $filename);
-        $filepath = Storage::disk('public')->path('stickers/'.$filename);
+        $filepath = Storage::disk('public')->path('stickers/' . $filename);
 
         $this->createThumbnail($filename, $filepath);
 
@@ -41,13 +41,13 @@ class StickerService
     /**
      * Create a thumbnail for the given image
      */
-    public function createThumbnail(string $filename, string $filepath): void
+    public static function createThumbnail(string $filename, string $filepath): void
     {
         logger("Creating thumbnail for $filename");
         Storage::disk('public')->makeDirectory('stickers/thumbnails');
         Image::read($filepath)
             ->scale(width: 400)
-            ->save(Storage::disk('public')->path('stickers/thumbnails/'.$filename));
+            ->save(Storage::disk('public')->path('stickers/thumbnails/' . $filename));
     }
 
     /**
