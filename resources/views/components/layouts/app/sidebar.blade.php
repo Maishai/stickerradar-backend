@@ -14,8 +14,8 @@
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Admin Panel')" class="grid">
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                    <flux:navlist.item icon="tag" :href="route('tags')" :current="request()->routeIs('tags')" wire:navigate>{{ __('Tags') }}</flux:navlist.item>
-                    <flux:navlist.item icon="photo" :href="route('stickers.preview')" :current="request()->routeIs('stickers.preview')" wire:navigate>{{ __('Gallery') }}</flux:navlist.item>
+                    <flux:navlist.item icon="tag" :href="route('tags.index')" :current="request()->routeIs('tags.index')" wire:navigate>{{ __('Tags') }}</flux:navlist.item>
+                    <flux:navlist.item icon="photo" :href="route('stickers.index')" :current="request()->routeIs('stickers.index')" wire:navigate>{{ __('Gallery') }}</flux:navlist.item>
                     <flux:navlist.item icon="camera" :href="route('stickers.upload')" :current="request()->routeIs('stickers.upload')" wire:navigate>{{ __('Upload') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>

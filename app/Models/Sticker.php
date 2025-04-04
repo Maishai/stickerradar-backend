@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Sticker extends Model
 {
@@ -16,4 +16,8 @@ class Sticker extends Model
     {
         return $this->belongsToMany(Tag::class);
     }
+
+    protected $casts = [
+        // 'last_seen' => 'date:YY-MM-DD',
+    ];
 }

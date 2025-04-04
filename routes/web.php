@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\EditSticker;
 use App\Livewire\ImageUpload;
 use App\Livewire\StickerPreview;
 use App\Livewire\TagsComponent;
@@ -16,9 +17,10 @@ Route::view('dashboard', 'dashboard')
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
-    Route::get('tags', TagsComponent::class)->name('tags');
+    Route::get('tags', TagsComponent::class)->name('tags.index');
+    Route::get('stickers', StickerPreview::class)->name('stickers.index');
     Route::get('stickers/upload', ImageUpload::class)->name('stickers.upload');
-    Route::get('stickers/preview', StickerPreview::class)->name('stickers.preview');
+    Route::get('stickers/{sticker}', EditSticker::class)->name('stickers.show');
 
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
