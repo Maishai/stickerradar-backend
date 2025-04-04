@@ -20,7 +20,7 @@ class StickerApiController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Sticker::query();
+        $query = Sticker::query()->with('tags');
 
         if ($request->has('min_lat') && $request->has('max_lat')) {
             $query->whereBetween('lat', [$request->query('min_lat'), $request->query('max_lat')]);
@@ -63,8 +63,8 @@ class StickerApiController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Sticker $sticker)
+    public function show($uuid)
     {
-        return $sticker->toJson();
+        return Sticker::query()->with('tags')->findOrFail($uuid)->toJson();
     }
 }
