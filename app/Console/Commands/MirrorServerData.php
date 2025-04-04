@@ -4,7 +4,9 @@ namespace App\Console\Commands;
 
 use App\Models\Sticker;
 use App\Models\Tag;
+use GuzzleHttp\Promise\Each;
 use Illuminate\Console\Command;
+use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
@@ -30,7 +32,7 @@ class MirrorServerData extends Command
     public function handle()
     {
         $server = $this->argument('server');
-        if (! $this->confirm('This will delete all local sticker and tag data. Do you want to continue?')) {
+        if (!$this->confirm('This will delete all local sticker and tag data. Do you want to continue?')) {
             return;
         }
 
@@ -53,7 +55,7 @@ class MirrorServerData extends Command
             $tagModel->save();
         });
 
-        $this->info('Mirrored '.count($tags).' tags');
+        $this->info('Mirrored ' . count($tags) . ' tags');
 
         $stickers = collect(Http::acceptJson()->get("$server/api/stickers")->json());
         $stickers->each(function ($sticker) {
@@ -68,31 +70,46 @@ class MirrorServerData extends Command
             $stickerModel->created_at = $sticker['created_at'];
             $stickerModel->updated_at = $sticker['updated_at'];
             $stickerModel->save();
+
+            foreach ($sticker['tags'] as $tag) {
+                $stickerModel->tags()->attach($tag['id']);
+            }
         });
 
-        $this->info('Mirroring '.count($stickers).' sticker images. This may take a while...');
+        $this->info('Mirroring ' . count($stickers) . ' sticker images. This may take a while...');
 
         $bar = $this->output->createProgressBar(count($stickers));
 
-        if (! Storage::disk('public')->exists('stickers')) {
+        if (!Storage::disk('public')->exists('stickers')) {
             Storage::disk('public')->makeDirectory('stickers');
         }
 
-        foreach ($stickers as $sticker) {
-            $filename = $sticker['filename'];
-            $imagePath = "$server/storage/stickers/$filename";
+        Http::pool(function (Pool $pool) use ($stickers, $server, $bar) {
+            return [
+                Each::ofLimit(
+                    (function () use ($pool, $stickers, $server, $bar) {
+                        foreach ($stickers as $sticker) {
+                            $filename = $sticker['filename'];
+                            $imagePath = "$server/storage/stickers/$filename";
 
-            $image = Http::get($imagePath)->body();
-
-            Storage::disk('public')->put("stickers/$filename", $image);
-
-            $bar->advance();
-        }
+                            yield $pool
+                                ->as($filename)
+                                ->get($imagePath)
+                                ->then(function ($response) use ($filename, $bar) {
+                                    Storage::disk('public')->put("stickers/$filename", $response->body());
+                                    $bar->advance();
+                                });
+                        }
+                    })(),
+                    16
+                ),
+            ];
+        });
 
         $bar->finish();
         $this->newLine();
-        $this->info('Done fetching '.count($stickers).' sticker images. Generating Thumbnails...');
+        $this->info('Done fetching ' . count($stickers) . ' sticker images. Generating Thumbnails...');
 
-        $this->call('app:generate-missing-thumbnails');
+        $this->call(GenerateMissingThumbnails::class);
     }
 }
