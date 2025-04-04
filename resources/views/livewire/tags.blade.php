@@ -10,24 +10,15 @@
                     <form wire:submit.prevent="saveTag" class="space-y-4">
                         <div>
                             <x-input label="Name" wire:model.defer="name" placeholder="Tag Name" />
-                            @error('name')
-                                <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message }}</span>
-                            @enderror
                         </div>
 
                         <div>
                             <x-select label="Super Tag" placeholder="Select a super tag" :options="$tags"
                                 option-label="name" option-value="id" wire:model.defer="super_tag" class="w-full" />
-                            @error('super_tag')
-                                <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message }}</span>
-                            @enderror
                         </div>
 
                         <div>
                             <x-color-picker label="Color" wire:model.defer="color" placeholder="Pick a color" />
-                            @error('color')
-                                <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message }}</span>
-                            @enderror
                         </div>
 
                         <div class="flex justify-end mt-6">
@@ -90,9 +81,6 @@
                         <div>
                             <x-select label="Tag" placeholder="Select a tag to delete" :options="$tags"
                                 option-label="name" option-value="id" wire:model.defer="tag" class="w-full" />
-                            @error('tag')
-                                <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message }}</span>
-                            @enderror
                         </div>
 
                         <div class="flex justify-end mt-6">
