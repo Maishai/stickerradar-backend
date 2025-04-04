@@ -44,7 +44,7 @@ class EditSticker extends Component
             'last_seen' => $date,
         ]);
         $this->sticker->tags()->sync($this->selectedTags);
-
+        redirect()->route('stickers.index');
     }
 
     public function render()
