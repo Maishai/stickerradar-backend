@@ -1,0 +1,61 @@
+name: Laravel Deployment via FTP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo, mysql
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '21'
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Install Node.js dependencies and build assets
+        run: |
+          npm install
+          npm run build
+
+      - name: Prepare deployment directory
+        run: |
+          DEPLOY_DIR="../deploy_package"
+          rm -rf "$DEPLOY_DIR"
+          mkdir -p "$DEPLOY_DIR"
+
+          cp -r public/* "$DEPLOY_DIR"
+          cp -r vendor "$DEPLOY_DIR"
+          cp -r bootstrap "$DEPLOY_DIR"
+
+          find . -maxdepth 1 \
+              \( -path "./$DEPLOY_DIR" -prune \) -o \
+              \( -not -path './.*' -a -not -path './public' -a -not -path './vendor' -a -not -path './bootstrap' -a -not -path './node_modules' -a -not -path './storage' -a -not -path './tests' -a -not -path './.git' -a -not -path './.idea' -a -not -path './.vscode' -a -print -exec cp -r {} "$DEPLOY_DIR" \; \)
+
+      - name: Elevate directory structure in index.php
+        run: |
+          DEPLOY_DIR="../deploy_package"
+          sed -i "s@__DIR__.'\/\.\.\/@__DIR__.'\/@g" "$DEPLOY_DIR/index.php"
+
+
+      - name: Deploy over FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER_ADRESS }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /
+          local-dir: ../deploy_package/
