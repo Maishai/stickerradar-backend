@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\StickerResource;
 use App\Models\Sticker;
 use App\Services\StickerService;
+use App\State;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class StickerApiController extends Controller
 {
@@ -32,7 +35,7 @@ class StickerApiController extends Controller
 
         $stickers = $query->get();
 
-        return $stickers->toJson();
+        return StickerResource::collection($stickers);
     }
 
     /**
@@ -44,8 +47,9 @@ class StickerApiController extends Controller
             'lat' => 'required|numeric|min:-90|max:90',
             'lon' => 'required|numeric|min:-180|max:180',
             'image' => 'required|image|mimes:jpg,jpeg,png,gif|max:4096',
-            'tag' => 'required|array',
-            'tag.*' => 'exists:tags,id',
+            'tags' => 'required|array',
+            'tags.*' => 'exists:tags,id',
+            'state' => [Rule::enum(State::class)],
         ]);
 
         $data = [
@@ -53,11 +57,12 @@ class StickerApiController extends Controller
             'lon' => $validated['lon'],
         ];
 
-        return $this->stickerService->createSticker(
+        return new StickerResource($this->stickerService->createSticker(
             $data,
             $validated['image'],
-            $validated['tag']
-        );
+            $validated['tags'],
+            $validated['state'] ?? State::EXISTS,
+        ));
     }
 
     /**
@@ -65,6 +70,6 @@ class StickerApiController extends Controller
      */
     public function show($uuid)
     {
-        return Sticker::query()->with('tags')->findOrFail($uuid)->toJson();
+        return new StickerResource(Sticker::query()->with('tags')->findOrFail($uuid));
     }
 }

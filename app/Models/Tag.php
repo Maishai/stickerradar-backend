@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Model;
 
 class Tag extends Model
 {
@@ -26,6 +26,7 @@ class Tag extends Model
     public static function buildTrees()
     {
         $tags = Tag::all();
+
         return $tags->whereNull('super_tag')->map(function ($tag) use ($tags) {
             return Tag::buildTree($tags, $tag);
         })->values();
@@ -37,7 +38,7 @@ class Tag extends Model
             'id' => $tag->id,
             'name' => $tag->name,
             'color' => $tag->color ?? 'steelblue',
-            'children' => $tags->where('super_tag', $tag->id)->map(fn($child) => Tag::buildTree($tags, $child))->values(),
+            'children' => $tags->where('super_tag', $tag->id)->map(fn ($child) => Tag::buildTree($tags, $child))->values(),
         ];
     }
 }
