@@ -90,7 +90,7 @@ return [
      * ```
      */
     'servers' => [
-        'Local' => 'localhost:8000/api',
+        'Local' => 'http://localhost:8000/api',
         'Production' => 'https://'.env('PRODUCTION_URL', 'stickerradar.maishai.de').'/api',
     ],
 
