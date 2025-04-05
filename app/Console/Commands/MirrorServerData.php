@@ -18,7 +18,7 @@ class MirrorServerData extends Command
      *
      * @var string
      */
-    protected $signature = 'app:mirror-server-data {server=https://stickerradar.404simon.de}';
+    protected $signature = 'app:mirror-server-data {server?}';
 
     /**
      * The console command description.
@@ -32,8 +32,9 @@ class MirrorServerData extends Command
      */
     public function handle()
     {
-        $server = $this->argument('server');
-        if (!$this->confirm('This will delete all local sticker and tag data. Do you want to continue?')) {
+        $defaultServer = env('PRODUCTION_URL', 'https://stickerradar.maishai.de');
+        $server = $this->argument('server') ?: $defaultServer;
+        if (! $this->confirm('This will delete all local sticker and tag data. Do you want to continue?')) {
             return;
         }
 
@@ -56,7 +57,7 @@ class MirrorServerData extends Command
             $tagModel->save();
         });
 
-        $this->info('Mirrored ' . count($tags) . ' tags');
+        $this->info('Mirrored '.count($tags).' tags');
 
         $stickers = collect(Http::acceptJson()->get("$server/api/stickers")->json());
         $stickers->each(function ($sticker) {
@@ -77,11 +78,11 @@ class MirrorServerData extends Command
             }
         });
 
-        $this->info('Mirroring ' . count($stickers) . ' sticker images and generating thumbnails. This may take a while...');
+        $this->info('Mirroring '.count($stickers).' sticker images and generating thumbnails. This may take a while...');
 
         $bar = $this->output->createProgressBar(count($stickers));
 
-        if (!Storage::disk('public')->exists('stickers')) {
+        if (! Storage::disk('public')->exists('stickers')) {
             Storage::disk('public')->makeDirectory('stickers');
         }
 
