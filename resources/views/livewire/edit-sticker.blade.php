@@ -1,6 +1,10 @@
 <div class="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
     <div class="sm:px-0">
-        <h1 class="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6">Edit Sticker</h1>
+        <div class="flex justify-between items-center mb-4 sm:mb-6">
+            <h1 class="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-gray-100">Edit Sticker</h1>
+            <x-button href="{{ route('stickers.index') }}" label="Back" icon="arrow-left"
+                class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600" />
+        </div>
 
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-4 sm:mb-6">
             <div class="flex flex-col md:flex-row">
@@ -36,7 +40,10 @@
                                 display-format="DD-MM-YYYY" parse-format="YYYY-MM-DD" without-time />
                         </div>
 
-                        <div class="flex justify-end pt-2 sm:pt-4">
+                        <div class="flex justify-between pt-2 sm:pt-4">
+                            <x-button negative wire:click="delete"
+                                wire:confirm="Are you sure you want to delete this sticker?" label="Delete"
+                                icon="trash" />
                             <x-button type="submit" primary label="Save Changes" right-icon="check" />
                         </div>
                     </form>

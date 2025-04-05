@@ -47,6 +47,13 @@ class EditSticker extends Component
         redirect()->route('stickers.index');
     }
 
+    public function delete()
+    {
+        $this->sticker->delete();
+
+        return redirect()->route('stickers.index');
+    }
+
     public function render()
     {
         return view('livewire.edit-sticker');
