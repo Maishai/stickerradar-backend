@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->double('lat');
             $table->double('lon');
             $table->enum('state', array_column(State::cases(), 'value'))->default(State::EXISTS);
-            $table->date('last_seen')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->date('last_seen')->useCurrent();
             $table->string('filename');
             $table->timestamps();
         });
