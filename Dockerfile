@@ -18,3 +18,8 @@ COPY . /app
 RUN mv "/app/php.ini.prod" "$PHP_INI_DIR/php.ini"
 
 RUN php artisan storage:link
+RUN php artisan optimize
+RUN php artisan config:cache
+RUN php artisan event:cache
+RUN php artisan route:cache
+RUN php artisan view:cache
