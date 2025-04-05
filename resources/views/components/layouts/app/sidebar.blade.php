@@ -22,6 +22,12 @@
 
             <flux:spacer />
 
+            <flux:navlist variant="outline">
+                <flux:navlist.item icon="book-open-text" :href="route('scramble.docs.ui')" target="_blank">
+                {{ __('API Docs') }}
+                </flux:navlist.item>
+            </flux:navlist>
+
 
             <!-- Desktop User Menu -->
             <flux:dropdown position="bottom" align="start">
