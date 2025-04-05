@@ -4,8 +4,8 @@ namespace App\Livewire;
 
 use App\Models\Tag;
 use App\Services\StickerService;
-use Livewire\Attributes\Title;
 use App\State;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -80,7 +80,7 @@ class ImageUpload extends Component
         );
 
         return redirect()
-            ->route('stickers.preview', ['sticker' => $sticker->id])
+            ->route('stickers.index', ['sticker' => $sticker->id])
             ->with('message', 'Sticker uploaded successfully!');
     }
 
