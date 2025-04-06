@@ -9,4 +9,3 @@ Route::name('api.')->group(function () {
     Route::get('tags/tree', [TagApiController::class, 'tree'])->name('tags.tree');
     Route::resource('tags', TagApiController::class)->only(['index', 'show']);
 });
-

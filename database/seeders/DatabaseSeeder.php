@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@stickerradar.com',
-            'password' => env('ADMIN_PASSWORD', 'unsafe')
+            'password' => env('ADMIN_PASSWORD', 'unsafe'),
         ]);
 
         $this->call([

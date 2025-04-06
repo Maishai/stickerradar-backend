@@ -14,12 +14,12 @@ class TagSeeder extends Seeder
     {
         $politics = Tag::create([
             'name' => 'Politik',
-            'color' => '#EE82EE'
+            'color' => '#EE82EE',
         ]);
 
         $sports = Tag::create([
             'name' => 'Sport',
-            'color' => '#F5FF00'
+            'color' => '#F5FF00',
         ]);
 
         Tag::create([

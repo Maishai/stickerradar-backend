@@ -14,7 +14,7 @@ class EditTag extends Component
     public $super_tag = null;
 
     public string $color = '#000000';
-    
+
     public array $tags = [];
 
     public function mount(Tag $tag)
@@ -46,6 +46,7 @@ class EditTag extends Component
         for ($i = 0; $i < count($this->tags); $i++) {
             if ($this->tags[$i]['super_tag'] == $this->tag->id) {
                 session()->flash('delete_error', 'Cannot delete this tag as it is a super tag for other tags!');
+
                 return;
             }
         }

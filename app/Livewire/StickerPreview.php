@@ -36,7 +36,7 @@ class StickerPreview extends Component
         $query = Sticker::query()->with('tags');
 
         // Filter by selected tags if any
-        if (!empty($this->selectedTags)) {
+        if (! empty($this->selectedTags)) {
             $query->whereHas('tags', function ($q) {
                 $q->whereIn('tags.id', $this->selectedTags);
             }, '=', count($this->selectedTags));

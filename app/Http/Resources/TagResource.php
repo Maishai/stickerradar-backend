@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 class TagResource extends JsonResource
 {
@@ -18,7 +18,7 @@ class TagResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'super_tag' => $this->super_tag,
-            'color' => $this->color
+            'color' => $this->color,
         ];
     }
 }
