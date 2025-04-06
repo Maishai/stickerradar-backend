@@ -21,7 +21,13 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:4200', env('APP_URL').':8000', 'https://'.env('PRODUCTION_URL')],
+    'allowed_origins' => [
+        'http://localhost:4200', 
+        env('APP_URL').':8000', 
+        'https://'.env('PRODUCTION_URL'), 
+        'capacitor://localhost', //Capacitor IOS
+        'http://localhost' //Capacitor Android
+    ],
 
     'allowed_origins_patterns' => [],
 
