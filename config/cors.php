@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [env('APP_URL').':8000', 'https://'.env('PRODUCTION_URL')],
+    'allowed_origins' => [env('APP_URL').':4200', env('APP_URL').':8000', 'https://'.env('PRODUCTION_URL')],
 
     'allowed_origins_patterns' => [],
 
