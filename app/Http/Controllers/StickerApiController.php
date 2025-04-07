@@ -57,11 +57,15 @@ class StickerApiController extends Controller
             'lon' => $validated['lon'],
         ];
 
+        $state = isset($validated['state'])
+        ? State::from($validated['state'])
+        : State::EXISTS;
+
         return new StickerResource($this->stickerService->createSticker(
             $data,
             $validated['image'],
             $validated['tags'],
-            $validated['state'] ?? State::EXISTS,
+            $state
         ));
     }
 
