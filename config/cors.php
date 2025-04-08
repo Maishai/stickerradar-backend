@@ -21,6 +21,7 @@ return [
 
     'allowed_origins' => [
         'http://localhost:4200',
+        'http://localhost:8100',
         env('APP_URL').':8000',
         'https://'.env('PRODUCTION_URL'),
         'capacitor://localhost', // Capacitor IOS
