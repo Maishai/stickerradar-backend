@@ -44,7 +44,7 @@ class MirrorServerData extends Command
         Storage::disk('public')->deleteDirectory('stickers');
         Tag::truncate();
 
-        $tags = collect(Http::acceptJson()->get("$server/api/tags")->json());
+        $tags = collect(Http::acceptJson()->get("$server/api/tags")->json('data'));
         $tags->each(function ($tag) {
             $tagModel = new Tag([
                 'name' => $tag['name'],
@@ -52,14 +52,12 @@ class MirrorServerData extends Command
                 'color' => $tag['color'],
             ]);
             $tagModel->id = $tag['id'];
-            $tagModel->created_at = $tag['created_at'];
-            $tagModel->updated_at = $tag['updated_at'];
             $tagModel->save();
         });
 
         $this->info('Mirrored '.count($tags).' tags');
 
-        $stickers = collect(Http::acceptJson()->get("$server/api/stickers")->json());
+        $stickers = collect(Http::acceptJson()->get("$server/api/stickers")->json('data'));
         $stickers->each(function ($sticker) {
             $stickerModel = new Sticker([
                 'lat' => $sticker['lat'],
@@ -69,12 +67,10 @@ class MirrorServerData extends Command
                 'state' => $sticker['state'],
             ]);
             $stickerModel->id = $sticker['id'];
-            $stickerModel->created_at = $sticker['created_at'];
-            $stickerModel->updated_at = $sticker['updated_at'];
             $stickerModel->save();
 
             foreach ($sticker['tags'] as $tag) {
-                $stickerModel->tags()->attach($tag['id']);
+                $stickerModel->tags()->attach($tag);
             }
         });
 
