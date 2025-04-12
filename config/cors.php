@@ -26,6 +26,7 @@ return [
         'https://'.env('PRODUCTION_URL'),
         'capacitor://localhost', // Capacitor IOS
         'http://localhost', // Capacitor Android
+        'https://localhost/',
     ],
 
     'allowed_origins_patterns' => [],
