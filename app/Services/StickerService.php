@@ -14,9 +14,19 @@ class StickerService
     /**
      * Create a new sticker with the given data and image
      */
-    public function createSticker(array $data, UploadedFile $imageFile, array $tagIds, State $state = State::EXISTS): Sticker
+    public function createSticker(array $data, string $base64Image, array $tagIds, State $state = State::EXISTS): Sticker
     {
-        $extension = $imageFile->getClientOriginalExtension();
+        if (! preg_match('/^data:image\/(\w+);base64,/', $base64Image, $matches)) {
+            throw new \InvalidArgumentException('Invalid base64 image format.');
+        }
+
+        $extension = strtolower($matches[1]);
+        $imageData = base64_decode(preg_replace('/^data:image\/\w+;base64,/', '', $base64Image));
+
+        if ($imageData === false) {
+            throw new \InvalidArgumentException('Failed to decode base64 image.');
+        }
+
         $filename = Str::uuid().'.'.$extension;
 
         $sticker = Sticker::create([
@@ -31,8 +41,9 @@ class StickerService
             $sticker->tags()->attach($tagId);
         }
 
-        Storage::disk('public')->putFileAs('stickers', $imageFile, $filename);
-        $filepath = Storage::disk('public')->path('stickers/'.$filename);
+        // Save the decoded image to the filesystem
+        Storage::disk('public')->put("stickers/{$filename}", $imageData);
+        $filepath = Storage::disk('public')->path("stickers/{$filename}");
 
         $this->createThumbnail($filename, $filepath);
 

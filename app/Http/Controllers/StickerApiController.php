@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\StickerResource;
 use App\Models\Sticker;
+use App\Rules\StickerImage;
 use App\Services\StickerService;
 use App\State;
 use Illuminate\Http\Request;
@@ -46,7 +47,7 @@ class StickerApiController extends Controller
         $validated = $request->validate([
             'lat' => 'required|numeric|min:-90|max:90',
             'lon' => 'required|numeric|min:-180|max:180',
-            'image' => 'required|image|mimes:jpg,jpeg,png,gif|max:4096',
+            'image' => ['required', new StickerImage],
             'tags' => 'required|array',
             'tags.*' => 'exists:tags,id',
             'state' => [Rule::enum(State::class)],

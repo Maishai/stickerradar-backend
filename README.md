@@ -12,14 +12,18 @@ Perfect, now you can start the backend by typing `composer run dev`.
 
 ```bash
 curl -X POST \
-    -H "Accept: application/json" \
-    -H "Content-Type: multipart/form-data" \
-    -F "lat=40.7121" \
-    -F "lon=70.1212" \
-    -F "image=@/home/simon/Bilder/Wallpapers/bryggen.jpg" \
-    -F "tags[]=0195f7eb-7b39-709b-8d64-f1a19e00c228" \
-    -F "tags[]=0195f87c-1408-71cf-8afa-42f809530de9" \
-    -F "tags[]=0195f7eb-7b36-7184-8c17-b1491075ea7f" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lat": 40.7121,
+    "lon": 70.1212,
+    "image": "data:image/jpeg;base64,<base64-string>",
+    "tags": [
+      "0195f7eb-7b39-709b-8d64-f1a19e00c228",
+      "0195f87c-1408-71cf-8afa-42f809530de9",
+      "0195f7eb-7b36-7184-8c17-b1491075ea7f"
+    ]
+  }' \
     "http://localhost:8000/api/stickers"
 ```
 

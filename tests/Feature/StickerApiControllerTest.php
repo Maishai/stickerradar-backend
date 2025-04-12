@@ -8,7 +8,6 @@ use App\Services\StickerService;
 use App\State;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -88,12 +87,13 @@ class StickerApiControllerTest extends TestCase
     public function test_store_valid_data_creates_and_returns_sticker()
     {
         $tags = Tag::factory()->count(2)->create();
-        $image = UploadedFile::fake()->image('sticker.jpg');
+
+        $base64Image = base64_encode(file_get_contents('storage/example-images/fussball.jpeg'));
 
         $response = $this->postJson(route('api.stickers.store'), [
             'lat' => 40.7128,
             'lon' => -74.0060,
-            'image' => $image,
+            'image' => 'data:image/jpeg;base64,'.$base64Image,
             'tags' => $tags->pluck('id')->toArray(),
             'state' => State::EXISTS->value,
         ]);
@@ -139,12 +139,13 @@ class StickerApiControllerTest extends TestCase
     public function test_store_valid_data_without_state_creates_and_returns_sticker_with_default_state()
     {
         $tags = Tag::factory()->count(2)->create();
-        $image = UploadedFile::fake()->image('sticker.jpg');
+
+        $base64Image = base64_encode(file_get_contents('storage/example-images/fussball.jpeg'));
 
         $response = $this->postJson(route('api.stickers.store'), [
             'lat' => 40.7128,
             'lon' => -74.0060,
-            'image' => $image,
+            'image' => 'data:image/jpeg;base64,'.$base64Image,
             'tags' => $tags->pluck('id')->toArray(),
         ]);
 
@@ -153,7 +154,7 @@ class StickerApiControllerTest extends TestCase
                 'data' => [
                     'lat' => 40.7128,
                     'lon' => -74.0060,
-                    'state' => State::EXISTS->value, // Default state
+                    'state' => State::EXISTS->value,
                     'tags' => $tags->pluck('id')->toArray(),
                 ],
             ]);
@@ -163,16 +164,19 @@ class StickerApiControllerTest extends TestCase
             'lon' => -74.0060,
             'state' => State::EXISTS->value,
         ]);
+
         $filename = Sticker::first()->filename;
         Storage::disk('public')->assertExists(["stickers/$filename", "stickers/thumbnails/$filename"]);
     }
 
     public function test_store_invalid_latitude_returns_validation_error()
     {
+        $base64Image = base64_encode(file_get_contents('storage/example-images/fussball.jpeg'));
+
         $response = $this->postJson(route('api.stickers.store'), [
             'lat' => 100,
             'lon' => -74.0060,
-            'image' => UploadedFile::fake()->image('sticker.jpg'),
+            'image' => 'data:image/jpeg;base64,'.$base64Image,
             'tags' => [1],
         ]);
 
@@ -182,10 +186,12 @@ class StickerApiControllerTest extends TestCase
 
     public function test_store_invalid_longitude_returns_validation_error()
     {
+        $base64Image = base64_encode(file_get_contents('storage/example-images/fussball.jpeg'));
+
         $response = $this->postJson(route('api.stickers.store'), [
             'lat' => 40.7128,
             'lon' => 200,
-            'image' => UploadedFile::fake()->image('sticker.jpg'),
+            'image' => 'data:image/jpeg;base64,'.$base64Image,
             'tags' => [1],
         ]);
 
@@ -210,7 +216,7 @@ class StickerApiControllerTest extends TestCase
         $response = $this->postJson(route('api.stickers.store'), [
             'lat' => 40.7128,
             'lon' => -74.0060,
-            'image' => UploadedFile::fake()->create('document.pdf'),
+            'image' => 'data:application/pdf;base64,bla',
             'tags' => [1],
         ]);
 
@@ -220,10 +226,12 @@ class StickerApiControllerTest extends TestCase
 
     public function test_store_missing_tags_returns_validation_error()
     {
+        $base64Image = base64_encode(file_get_contents('storage/example-images/fussball.jpeg'));
+
         $response = $this->postJson(route('api.stickers.store'), [
             'lat' => 40.7128,
             'lon' => -74.0060,
-            'image' => UploadedFile::fake()->image('sticker.jpg'),
+            'image' => 'data:image/jpeg;base64,'.$base64Image,
         ]);
 
         $response->assertStatus(422)
@@ -232,10 +240,12 @@ class StickerApiControllerTest extends TestCase
 
     public function test_store_invalid_tag_id_returns_validation_error()
     {
+        $base64Image = base64_encode(file_get_contents('storage/example-images/fussball.jpeg'));
+
         $response = $this->postJson(route('api.stickers.store'), [
             'lat' => 40.7128,
             'lon' => -74.0060,
-            'image' => UploadedFile::fake()->image('sticker.jpg'),
+            'image' => 'data:image/jpeg;base64,'.$base64Image,
             'tags' => [999],
         ]);
 
@@ -245,10 +255,12 @@ class StickerApiControllerTest extends TestCase
 
     public function test_store_invalid_state_enum_value_returns_validation_error()
     {
+        $base64Image = base64_encode(file_get_contents('storage/example-images/fussball.jpeg'));
+
         $response = $this->postJson(route('api.stickers.store'), [
             'lat' => 40.7128,
             'lon' => -74.0060,
-            'image' => UploadedFile::fake()->image('sticker.jpg'),
+            'image' => 'data:image/jpeg;base64,'.$base64Image,
             'tags' => Tag::factory()->create()->pluck('id')->toArray(),
             'state' => 'invalid_state',
         ]);
