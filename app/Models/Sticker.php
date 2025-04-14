@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use App\State;
+use EmilKlindt\MarkerClusterer\Interfaces\Clusterable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use League\Geotools\Coordinate\Coordinate;
 
-class Sticker extends Model
+class Sticker extends Model implements Clusterable
 {
     use HasFactory;
     use HasUlids;
@@ -18,6 +20,14 @@ class Sticker extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    public function getClusterableCoordinate(): Coordinate
+    {
+        return new Coordinate([
+            $this->lat,
+            $this->lon,
+        ]);
     }
 
     protected $casts = [
