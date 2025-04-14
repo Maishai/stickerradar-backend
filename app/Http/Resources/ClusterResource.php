@@ -24,10 +24,14 @@ class ClusterResource extends JsonResource
 
         return [
             'centroid' => [
-                'lat' => $this->centroid->getLatitude(),
-                'lon' => $this->centroid->getLongitude(),
+                /** @var float */
+                'lat' => (float) $this->centroid->getLatitude(),
+                /** @var float */
+                'lon' => (float) $this->centroid->getLongitude(),
             ],
             'color' => $mostCommonColor,
+            /** @var int */
+            'count' => $this->markers->count(),
         ];
     }
 }
