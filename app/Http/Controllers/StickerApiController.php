@@ -2,15 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\ClusterResource;
 use App\Http\Resources\StickerResource;
 use App\Models\Sticker;
 use App\Rules\MaxTileSize;
 use App\Rules\StickerImage;
 use App\Services\StickerService;
 use App\State;
-use EmilKlindt\MarkerClusterer\Facades\DefaultClusterer;
-use EmilKlindt\MarkerClusterer\Models\Config;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -82,46 +79,5 @@ class StickerApiController extends Controller
     public function show($uuid)
     {
         return new StickerResource(Sticker::query()->with('tags')->findOrFail($uuid));
-    }
-
-    /**
-     * Cluster the stickers.
-     *
-     * @response array{data: ClusterResource[]}
-     */
-    public function clusters(Request $request)
-    {
-        $request->validate([
-            /** @var float */
-            'min_lat' => ['required', 'numeric', 'between:-90,90', new MaxTileSize(1000)],
-            'max_lat' => ['required', 'numeric', 'between:-90,90'],
-            'min_lon' => ['required', 'numeric', 'between:-180,180'],
-            'max_lon' => ['required', 'numeric', 'between:-180,180'],
-            'epsilon' => 'nullable|numeric|min:0.1|max:100',
-            /** @var bool */
-            'include_stickers' => ['nullable', 'in:0,1,true,false'],
-            /** @var int */
-            'min_samples' => 'nullable|integer|min:1|max:100',
-        ]);
-
-        $minLat = $request->float('min_lat');
-        $maxLat = $request->float('max_lat');
-        $minLon = $request->float('min_lon');
-        $maxLon = $request->float('max_lon');
-        $epsilon = $request->float('epsilon', 10.5);
-        $minSamples = $request->integer('min_samples', 2);
-
-        $stickers = Sticker::query()
-            ->with('tags')
-            ->whereBetween('lat', [$minLat, $maxLat])
-            ->whereBetween('lon', [$minLon, $maxLon])
-            ->get();
-
-        $config = new Config([
-            'epsilon' => $epsilon,
-            'minSamples' => $minSamples,
-        ]);
-
-        return ClusterResource::collection(DefaultClusterer::cluster($stickers, $config)->values());
     }
 }
