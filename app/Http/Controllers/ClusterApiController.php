@@ -104,7 +104,7 @@ class ClusterApiController extends Controller
 
         while (! empty($stack)) {
             $tag = array_pop($stack);
-            $allSubTags->push($tag->name);
+            $allSubTags->push($tag->id);
 
             if (! $tag->relationLoaded('subTags')) {
                 $tag->load('subTags');
@@ -112,6 +112,6 @@ class ClusterApiController extends Controller
             $stack = array_merge($stack, $tag->subTags->all());
         }
 
-        return $allSubTags;
+        return $allSubTags->push($parentTag->id);
     }
 }
