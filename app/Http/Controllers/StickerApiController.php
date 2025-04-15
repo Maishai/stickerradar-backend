@@ -12,7 +12,6 @@ use App\State;
 use EmilKlindt\MarkerClusterer\Facades\DefaultClusterer;
 use EmilKlindt\MarkerClusterer\Models\Config;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 
 class StickerApiController extends Controller
@@ -99,6 +98,8 @@ class StickerApiController extends Controller
             'min_lon' => ['required', 'numeric', 'between:-180,180'],
             'max_lon' => ['required', 'numeric', 'between:-180,180'],
             'epsilon' => 'nullable|numeric|min:0.1|max:100',
+            /** @var bool */
+            'include_stickers' => ['nullable', 'in:0,1,true,false'],
             /** @var int */
             'min_samples' => 'nullable|integer|min:1|max:100',
         ]);
@@ -110,20 +111,17 @@ class StickerApiController extends Controller
         $epsilon = $request->float('epsilon', 10.5);
         $minSamples = $request->integer('min_samples', 2);
 
-        return Cache::flexible("clusters.$minLat.$maxLat.$minLon.$maxLon.$epsilon.$minSamples", [1800, 18000], function () use ($epsilon, $minSamples, $minLat, $maxLat, $minLon, $maxLon) {
+        $stickers = Sticker::query()
+            ->with('tags')
+            ->whereBetween('lat', [$minLat, $maxLat])
+            ->whereBetween('lon', [$minLon, $maxLon])
+            ->get();
 
-            $stickers = Sticker::query()
-                ->with('tags')
-                ->whereBetween('lat', [$minLat, $maxLat])
-                ->whereBetween('lon', [$minLon, $maxLon])
-                ->get();
+        $config = new Config([
+            'epsilon' => $epsilon,
+            'minSamples' => $minSamples,
+        ]);
 
-            $config = new Config([
-                'epsilon' => $epsilon,
-                'minSamples' => $minSamples,
-            ]);
-
-            return ClusterResource::collection(DefaultClusterer::cluster($stickers, $config)->values());
-        });
+        return ClusterResource::collection(DefaultClusterer::cluster($stickers, $config)->values());
     }
 }

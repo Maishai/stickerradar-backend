@@ -14,13 +14,12 @@ class ClusterResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $colorCounts = $this->markers
+        $tagCounts = $this->markers
             ->pluck('tags')
             ->flatten(1)
-            ->pluck('color')
-            ->countBy();
-
-        $mostCommonColor = $colorCounts->sortDesc()->keys()->first();
+            ->pluck('id')
+            ->countBy()
+            ->sortDesc();
 
         return [
             'centroid' => [
@@ -29,9 +28,11 @@ class ClusterResource extends JsonResource
                 /** @var float */
                 'lon' => (float) $this->centroid->getLongitude(),
             ],
-            'color' => $mostCommonColor,
+            /** @var array<string, int> */
+            'tagCounts' => $tagCounts,
             /** @var int */
             'count' => $this->markers->count(),
+            'stickers' => $this->when($request->boolean('include_stickers'), StickerResource::collection($this->markers)),
         ];
     }
 }
