@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\ClusterResource;
 use App\Http\Resources\StickerResource;
 use App\Models\Sticker;
+use App\Rules\MaxTileSize;
 use App\Rules\StickerImage;
 use App\Services\StickerService;
 use App\State;
@@ -28,17 +29,19 @@ class StickerApiController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Sticker::query()->with('tags');
+        $request->validate([
+            /** @var float */
+            'min_lat' => ['required', 'numeric', 'between:-90,90', new MaxTileSize(100)],
+            'max_lat' => ['required', 'numeric', 'between:-90,90'],
+            'min_lon' => ['required', 'numeric', 'between:-180,180'],
+            'max_lon' => ['required', 'numeric', 'between:-180,180'],
+        ]);
 
-        if ($request->has('min_lat') && $request->has('max_lat')) {
-            $query->whereBetween('lat', [$request->query('min_lat'), $request->query('max_lat')]);
-        }
-
-        if ($request->has('min_lon') && $request->has('max_lon')) {
-            $query->whereBetween('lon', [$request->query('min_lon'), $request->query('max_lon')]);
-        }
-
-        $stickers = $query->get();
+        $stickers = Sticker::query()
+            ->with('tags')
+            ->whereBetween('lat', [$request->float('min_lat'), $request->float('max_lat')])
+            ->whereBetween('lon', [$request->float('min_lon'), $request->float('max_lon')])
+            ->get();
 
         return StickerResource::collection($stickers);
     }
@@ -90,15 +93,31 @@ class StickerApiController extends Controller
     public function clusters(Request $request)
     {
         $request->validate([
+            /** @var float */
+            'min_lat' => ['required', 'numeric', 'between:-90,90', new MaxTileSize(1000)],
+            'max_lat' => ['required', 'numeric', 'between:-90,90'],
+            'min_lon' => ['required', 'numeric', 'between:-180,180'],
+            'max_lon' => ['required', 'numeric', 'between:-180,180'],
             'epsilon' => 'nullable|numeric|min:0.1|max:100',
+            /** @var int */
             'min_samples' => 'nullable|integer|min:1|max:100',
         ]);
 
+        $minLat = $request->float('min_lat');
+        $maxLat = $request->float('max_lat');
+        $minLon = $request->float('min_lon');
+        $maxLon = $request->float('max_lon');
         $epsilon = $request->float('epsilon', 10.5);
         $minSamples = $request->integer('min_samples', 2);
 
-        return Cache::flexible("clusters.$epsilon.$minSamples", [1800, 18000], function () use ($epsilon, $minSamples) {
-            $stickers = Sticker::with('tags')->get();
+        return Cache::flexible("clusters.$minLat.$maxLat.$minLon.$maxLon.$epsilon.$minSamples", [1800, 18000], function () use ($epsilon, $minSamples, $minLat, $maxLat, $minLon, $maxLon) {
+
+            $stickers = Sticker::query()
+                ->with('tags')
+                ->whereBetween('lat', [$minLat, $maxLat])
+                ->whereBetween('lon', [$minLon, $maxLon])
+                ->get();
+
             $config = new Config([
                 'epsilon' => $epsilon,
                 'minSamples' => $minSamples,

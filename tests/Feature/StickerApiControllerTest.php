@@ -23,65 +23,17 @@ class StickerApiControllerTest extends TestCase
         Storage::fake('public');
     }
 
-    public function test_index_no_filters_returns_all_stickers()
-    {
-        $stickers = Sticker::factory()->has(Tag::factory()->count(2))->count(3)->create();
-
-        $response = $this->getJson(route('api.stickers.index'));
-
-        $response->assertOk()
-            ->assertJsonCount(3, 'data')
-            ->assertJsonStructure([
-                'data' => [
-                    '*' => [
-                        'id',
-                        'lat',
-                        'lon',
-                        'filename',
-                        'state',
-                        'last_seen',
-                        'tags',
-                    ],
-                ],
-            ]);
-
-        foreach ($stickers as $sticker) {
-            $response->assertJsonFragment([
-                'id' => $sticker->id,
-                'lat' => $sticker->lat,
-                'lon' => $sticker->lon,
-                'filename' => $sticker->filename,
-                'state' => $sticker->state->value,
-                'last_seen' => $sticker->last_seen,
-                'tags' => $sticker->tags->pluck('id')->toArray(),
-            ]);
-        }
-    }
-
     public function test_index_filter_by_latitude_returns_correct_stickers()
     {
-        Sticker::factory()->create(['lat' => 10]);
-        Sticker::factory()->create(['lat' => 20]);
-        Sticker::factory()->create(['lat' => 30]);
+        Sticker::factory()->create(['lat' => 10, 'lon' => 10]);
+        Sticker::factory()->create(['lat' => 20, 'lon' => 20]);
+        Sticker::factory()->create(['lat' => 30, 'lon' => 30]);
 
-        $response = $this->getJson(route('api.stickers.index', ['min_lat' => 15, 'max_lat' => 25]));
-
-        $response->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonFragment(['lat' => 20]);
-    }
-
-    public function test_index_filter_by_longitude_returns_correct_stickers()
-    {
-        Sticker::factory()->create(['lon' => 10]);
-        Sticker::factory()->create(['lon' => 20]);
-        Sticker::factory()->create(['lon' => 30]);
-
-        $response = $this->getJson(route('api.stickers.index', ['min_lon' => 15, 'max_lon' => 25]));
+        $response = $this->getJson(route('api.stickers.index', ['min_lat' => 15, 'max_lat' => 25, 'min_lon' => 15, 'max_lon' => 25]));
 
         $response->assertOk()
             ->assertJsonCount(1, 'data')
-            ->assertJsonFragment(['lon' => 20]);
+            ->assertJsonFragment(['lat' => 20, 'lon' => 20]);
     }
 
     public function test_store_valid_data_creates_and_returns_sticker()
