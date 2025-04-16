@@ -26,6 +26,9 @@
                 <flux:navlist.item icon="book-open-text" :href="route('scramble.docs.ui')" target="_blank">
                 {{ __('API Docs') }}
                 </flux:navlist.item>
+                <flux:navlist.item icon="chart-bar" :href="route('telescope')" target="_blank">
+                {{ __('Telescope') }}
+                </flux:navlist.item>
             </flux:navlist>
 
 
