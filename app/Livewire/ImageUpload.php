@@ -73,9 +73,13 @@ class ImageUpload extends Component
             'lon' => $this->lon,
         ];
 
+        $imgPath = $this->photo->getRealPath();
+        $imgData = base64_encode(file_get_contents($imgPath));
+        $b64Image = 'data:'.mime_content_type($imgPath).';base64,'.$imgData;
+
         $sticker = $this->stickerService->createSticker(
             $data,
-            $this->photo,
+            $b64Image,
             $this->selectedTags,
             $this->selectedState ?? State::EXISTS,
         );
