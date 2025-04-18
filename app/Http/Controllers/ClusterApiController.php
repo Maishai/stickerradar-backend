@@ -9,6 +9,7 @@ use App\Rules\MaxTileSize;
 use EmilKlindt\MarkerClusterer\Facades\DefaultClusterer;
 use EmilKlindt\MarkerClusterer\Models\Config;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Collection;
 
 class ClusterApiController extends Controller
 {
@@ -94,6 +95,9 @@ class ClusterApiController extends Controller
             'minSamples' => $minSamples,
         ]);
 
+        $tagMap = $this->resolveSubTagsToParent($tag->subTags->all());
+        $stickers = $this->replaceTagsWithParents($stickers, $tagMap);
+
         return ClusterResource::collection(DefaultClusterer::cluster($stickers, $config)->values());
     }
 
@@ -114,4 +118,48 @@ class ClusterApiController extends Controller
 
         return $allSubTags->push($parentTag->id);
     }
+
+    private function resolveSubTagsToParent(array $parentTags): array 
+    {
+        $tagMap = [];
+    
+        foreach ($parentTags as $parentTag) {
+            $subtags = $parentTag->subTags->all();
+
+            while (! empty($subtags))
+            {
+                $tag = array_pop($subtags);
+                $tagMap[$tag->id] = $parentTag->id;
+    
+                if (! $tag->relationLoaded('subTags')) {
+                    $tag->load('subTags');
+                }
+    
+                $subtags = array_merge($subtags, $tag->subTags->all());
+            }
+        }
+        return $tagMap;
+    }
+
+    private function replaceTagsWithParents(Collection $stickers, array $tagMap): Collection {
+        foreach ($stickers as $sticker) {
+            $newTags = [];
+    
+            foreach ($sticker['tags'] as $tag) {
+                $tagId = $tag['id'];
+
+                if (array_key_exists($tagId, $tagMap)) {
+                    $newTags[] = $tagMap[$tagId];
+                }
+                if (!in_array($tagId, $newTags) && array_search($tagId, $tagMap) !== false) {
+                    //Add tag to newTags if it is not already present and is a parent tag
+                    $newTags[] = $tagId;
+                }
+            }
+
+            $sticker['count_tags'] = array_values(array_unique($newTags));
+        }
+        return $stickers;
+    }
+    
 }

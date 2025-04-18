@@ -14,12 +14,21 @@ class ClusterResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $tagCounts = $this->markers
-            ->pluck('tags')
-            ->flatten(1)
-            ->pluck('id')
-            ->countBy()
-            ->sortDesc();
+        if ($this->markers->first()['count_tags'] != null) {
+            $tagCounts = $this->markers
+                ->pluck('count_tags')
+                ->flatten(1)
+                ->countBy()
+                ->sortDesc();
+        }
+        else {
+            $tagCounts = $this->markers
+                ->pluck('tags')
+                ->flatten(1)
+                ->pluck('id')
+                ->countBy()
+                ->sortDesc();
+        }     
 
         return [
             'centroid' => [
