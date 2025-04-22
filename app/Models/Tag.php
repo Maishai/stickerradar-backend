@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache; // Import Collection
+use Illuminate\Support\Facades\Cache;
 
 #[ObservedBy([TagObserver::class])]
 class Tag extends Model

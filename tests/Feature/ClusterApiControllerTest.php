@@ -2,14 +2,10 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Tests\TestCase;
 use App\Models\Sticker;
 use App\Models\Tag;
-use EmilKlindt\MarkerClusterer\Facades\DefaultClusterer;
-use EmilKlindt\MarkerClusterer\Models\Config;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class ClusterApiControllerTest extends TestCase
 {
@@ -27,7 +23,7 @@ class ClusterApiControllerTest extends TestCase
         $queerphob = Tag::factory(['super_tag' => $rechts->id])->create();
         $transphob = Tag::factory(['super_tag' => $queerphob->id])->create();
 
-        # Linke Cluster
+        // Linke Cluster
         $linker_sticker = Sticker::factory(['lat' => 16, 'lon' => 16])->create();
         $linker_sticker->tags()->sync([$links->id]);
         $toleranz_sticker = Sticker::factory(['lat' => 16.0000001, 'lon' => 16.0000001])->create();
@@ -38,14 +34,14 @@ class ClusterApiControllerTest extends TestCase
         $gruene_sticker->tags()->sync([$gruene->id]);
         $antifa_sticker = Sticker::factory(['lat' => 16.00000005, 'lon' => 16.00000005])->create();
         $antifa_sticker->tags()->sync([$antifa->id]);
-        # Rechte Cluster
+        // Rechte Cluster
         $rechter_sticker = Sticker::factory(['lat' => 20, 'lon' => 20])->create();
         $rechter_sticker->tags()->sync([$rechts->id]);
         $queerphob_sticker = Sticker::factory(['lat' => 20.0000001, 'lon' => 20])->create();
         $queerphob_sticker->tags()->sync([$queerphob->id]);
         $transphob_sticker = Sticker::factory(['lat' => 20, 'lon' => 20.0000001])->create();
         $transphob_sticker->tags()->sync([$transphob->id]);
-        # Gemischter Cluster
+        // Gemischter Cluster
         $linker_sticker2 = Sticker::factory(['lat' => 24, 'lon' => 24])->create();
         $linker_sticker2->tags()->sync([$links->id]);
         $pride_sticker2 = Sticker::factory(['lat' => 24, 'lon' => 24.0000001])->create();
@@ -61,7 +57,7 @@ class ClusterApiControllerTest extends TestCase
         $transphob_sticker2 = Sticker::factory(['lat' => 24.00000005, 'lon' => 24])->create();
         $transphob_sticker2->tags()->sync([$transphob->id]);
 
-        $response = $this->getJson(route('api.stickers.clusters.show', ['min_lat' => 15, 'max_lat' => 25, 'min_lon' => 15, 'max_lon' => 25, "tag" => $politik->id]));
+        $response = $this->getJson(route('api.stickers.clusters.show', ['min_lat' => 15, 'max_lat' => 25, 'min_lon' => 15, 'max_lon' => 25, 'tag' => $politik->id]));
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -111,7 +107,7 @@ class ClusterApiControllerTest extends TestCase
                     ],
                 ],
             ]);
-            
+
     }
 
     public function test_cluster_stickers_by_parent_multiple_tags()
@@ -126,7 +122,7 @@ class ClusterApiControllerTest extends TestCase
         $queerphob = Tag::factory(['super_tag' => $rechts->id])->create();
         $transphob = Tag::factory(['super_tag' => $queerphob->id])->create();
 
-        # Linke Cluster
+        // Linke Cluster
         $linker_sticker = Sticker::factory(['lat' => 16, 'lon' => 16])->create();
         $linker_sticker->tags()->sync([$links->id]);
         $toleranz_sticker = Sticker::factory(['lat' => 16.0000001, 'lon' => 16.0000001])->create();
@@ -137,14 +133,14 @@ class ClusterApiControllerTest extends TestCase
         $gruene_sticker->tags()->sync([$gruene->id]);
         $antifa_sticker = Sticker::factory(['lat' => 16.00000005, 'lon' => 16.00000005])->create();
         $antifa_sticker->tags()->sync([$antifa->id]);
-        # Rechte Cluster
+        // Rechte Cluster
         $rechter_sticker = Sticker::factory(['lat' => 20, 'lon' => 20])->create();
         $rechter_sticker->tags()->sync([$rechts->id]);
         $queerphob_sticker = Sticker::factory(['lat' => 20.0000001, 'lon' => 20])->create();
         $queerphob_sticker->tags()->sync([$queerphob->id]);
         $transphob_sticker = Sticker::factory(['lat' => 20, 'lon' => 20.0000001])->create();
         $transphob_sticker->tags()->sync([$transphob->id]);
-        # Gemischter Cluster
+        // Gemischter Cluster
         $linker_sticker2 = Sticker::factory(['lat' => 24, 'lon' => 24])->create();
         $linker_sticker2->tags()->sync([$links->id]);
         $pride_sticker2 = Sticker::factory(['lat' => 24, 'lon' => 24.0000001])->create();
@@ -159,7 +155,7 @@ class ClusterApiControllerTest extends TestCase
         $queerphob_sticker2->tags()->sync([$queerphob->id]);
         $transphob_sticker2 = Sticker::factory(['lat' => 24.00000005, 'lon' => 24])->create();
         $transphob_sticker2->tags()->sync([$transphob->id]);
-        
+
         $response = $this->postJson(route('api.stickers.clusters.showMultiple'), [
             'min_lat' => 15,
             'max_lat' => 25,
@@ -167,7 +163,7 @@ class ClusterApiControllerTest extends TestCase
             'max_lon' => 25,
             'tags' => [$links->id, $rechts->id],
         ]);
-        
+
         $response->assertOk()
             ->assertJsonStructure([
                 'data' => [
@@ -216,6 +212,6 @@ class ClusterApiControllerTest extends TestCase
                     ],
                 ],
             ]);
-            
+
     }
 }

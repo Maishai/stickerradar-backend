@@ -20,15 +20,14 @@ class ClusterResource extends JsonResource
                 ->flatten(1)
                 ->countBy()
                 ->sortDesc();
-        }
-        else {
+        } else {
             $tagCounts = $this->markers
                 ->pluck('tags')
                 ->flatten(1)
                 ->pluck('id')
                 ->countBy()
                 ->sortDesc();
-        }     
+        }
 
         return [
             'centroid' => [

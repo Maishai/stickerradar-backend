@@ -128,5 +128,5 @@ return [
         */
 
         'default_use_geohash_neighboring' => false,
-    ]
+    ],
 ];

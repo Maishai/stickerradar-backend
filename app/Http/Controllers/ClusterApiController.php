@@ -9,8 +9,8 @@ use App\Rules\MaxTileSize;
 use App\Rules\NoSuperTag;
 use EmilKlindt\MarkerClusterer\Facades\DefaultClusterer;
 use EmilKlindt\MarkerClusterer\Models\Config;
-use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Request;
 
 class ClusterApiController extends Controller
 {
@@ -116,7 +116,7 @@ class ClusterApiController extends Controller
             /** @var int */
             'min_samples' => 'nullable|integer|min:1|max:100',
             'tags' => ['required', 'array', new NoSuperTag],
-            'tags.*' => 'required|exists:tags,id',
+            'tags.*' => 'required|uuid|exists:tags,id',
         ]);
 
         $minLat = $request->float('min_lat');
@@ -155,7 +155,7 @@ class ClusterApiController extends Controller
         return ClusterResource::collection(DefaultClusterer::cluster($stickers, $config)->values());
     }
 
-    private function resolveSubTagsToParent(array $parentTags): array 
+    private function resolveSubTagsToParent(array $parentTags): array
     {
         $tagMap = [];
 
@@ -169,13 +169,15 @@ class ClusterApiController extends Controller
             }
             $tagMap[$parentId] = $parentId;
         }
+
         return $tagMap;
     }
 
-    private function replaceTagsWithParents(Collection $stickers, array $tagMap): Collection {
+    private function replaceTagsWithParents(Collection $stickers, array $tagMap): Collection
+    {
         foreach ($stickers as $sticker) {
             $newTags = [];
-    
+
             foreach ($sticker['tags'] as $tag) {
                 $tagId = $tag['id'];
 
@@ -186,7 +188,7 @@ class ClusterApiController extends Controller
 
             $sticker['count_tags'] = array_values(array_unique($newTags));
         }
+
         return $stickers;
     }
-    
 }
