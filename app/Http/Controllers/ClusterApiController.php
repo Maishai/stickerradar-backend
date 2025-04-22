@@ -6,6 +6,7 @@ use App\Http\Resources\ClusterResource;
 use App\Models\Sticker;
 use App\Models\Tag;
 use App\Rules\MaxTileSize;
+use App\Rules\NoSuperTag;
 use EmilKlindt\MarkerClusterer\Facades\DefaultClusterer;
 use EmilKlindt\MarkerClusterer\Models\Config;
 use Illuminate\Http\Request;
@@ -101,17 +102,72 @@ class ClusterApiController extends Controller
         return ClusterResource::collection(DefaultClusterer::cluster($stickers, $config)->values());
     }
 
+    public function showMultiple(Request $request)
+    {
+        $request->validate([
+            /** @var float */
+            'min_lat' => ['required', 'numeric', 'between:-90,90', new MaxTileSize(1000)],
+            'max_lat' => ['required', 'numeric', 'between:-90,90'],
+            'min_lon' => ['required', 'numeric', 'between:-180,180'],
+            'max_lon' => ['required', 'numeric', 'between:-180,180'],
+            'epsilon' => 'nullable|numeric|min:0.1|max:100',
+            /** @var bool */
+            'include_stickers' => ['nullable', 'in:0,1,true,false'],
+            /** @var int */
+            'min_samples' => 'nullable|integer|min:1|max:100',
+            'tags' => ['required', 'array', new NoSuperTag],
+            'tags.*' => 'required|exists:tags,id',
+        ]);
+
+        $minLat = $request->float('min_lat');
+        $maxLat = $request->float('max_lat');
+        $minLon = $request->float('min_lon');
+        $maxLon = $request->float('max_lon');
+        $epsilon = $request->float('epsilon', 10.5);
+        $minSamples = $request->integer('min_samples', 1);
+        $tags = $request->array('tags');
+
+        $allSubTags = [];
+        foreach ($tags as $tagId) {
+            $descendants = Tag::getDescendantIds($tagId);
+            $allSubTags[] = $tagId;
+            $allSubTags = array_merge($allSubTags, $descendants);
+        }
+        $allSubTags = array_unique($allSubTags);
+
+        $stickers = Sticker::query()
+            ->with('tags')
+            ->whereBetween('lat', [$minLat, $maxLat])
+            ->whereBetween('lon', [$minLon, $maxLon])
+            ->whereHas('tags', function ($query) use ($allSubTags) {
+                $query->whereIn('tags.id', $allSubTags);
+            })
+            ->get();
+
+        $config = new Config([
+            'epsilon' => $epsilon,
+            'minSamples' => $minSamples,
+        ]);
+
+        $tagMap = $this->resolveSubTagsToParent($tags);
+        $stickers = $this->replaceTagsWithParents($stickers, $tagMap);
+
+        return ClusterResource::collection(DefaultClusterer::cluster($stickers, $config)->values());
+    }
+
     private function resolveSubTagsToParent(array $parentTags): array 
     {
         $tagMap = [];
-    
+
         foreach ($parentTags as $parentTag) {
-            $subtags = Tag::getDescendantIds($parentTag->id);
-            
+            $parentId = is_object($parentTag) ? $parentTag->id : $parentTag;
+
+            $subtags = Tag::getDescendantIds($parentId);
+
             foreach ($subtags as $tagId) {
-                $tagMap[$tagId] = $parentTag->id;
+                $tagMap[$tagId] = $parentId;
             }
-            $subtags[$parentTag->id] = $parentTag->id;
+            $tagMap[$parentId] = $parentId;
         }
         return $tagMap;
     }
@@ -125,10 +181,6 @@ class ClusterApiController extends Controller
 
                 if (array_key_exists($tagId, $tagMap)) {
                     $newTags[] = $tagMap[$tagId];
-                }
-                if (!in_array($tagId, $newTags) && array_search($tagId, $tagMap) !== false) {
-                    //Add tag to newTags if it is not already present and is a parent tag
-                    $newTags[] = $tagId;
                 }
             }
 

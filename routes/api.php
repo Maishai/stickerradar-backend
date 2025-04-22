@@ -10,6 +10,7 @@ Route::name('api.')->middleware(['throttle:api'])->group(function () {
         Route::name('clusters.')->prefix('clusters')->group(function () {
             Route::get('', [ClusterApiController::class, 'index'])->name('index');
             Route::get('{tag}', [ClusterApiController::class, 'show'])->name('show');
+            Route::post('', [ClusterApiController::class, 'showMultiple'])->name('showMultiple');
         });
         Route::post('', [StickerApiController::class, 'store'])->middleware(['throttle:sticker-upload'])->name('store');
         Route::get('', [StickerApiController::class, 'index'])->name('index');
