@@ -52,7 +52,7 @@ class EditTag extends Component
         }
         $this->tag->delete();
 
-        session()->flash('delete_success', 'Tag deleted successfully!');
+        return redirect()->route('tags.index');
     }
 
     public function render()
