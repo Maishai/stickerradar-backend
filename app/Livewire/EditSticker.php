@@ -4,7 +4,9 @@ namespace App\Livewire;
 
 use App\Models\Sticker;
 use App\Models\Tag;
+use App\State;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class EditSticker extends Component
@@ -33,7 +35,7 @@ class EditSticker extends Component
         $this->validate([
             'selectedTags' => 'array',
             'selectedTags.*' => 'exists:tags,id',
-            'selectedState' => 'string|max:255',
+            'selectedState' => [Rule::enum(State::class)],
             'lastSeen' => 'date',
         ]);
         // fucking datepicker returns the date of the day before
