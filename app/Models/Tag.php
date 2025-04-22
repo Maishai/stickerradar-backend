@@ -2,13 +2,17 @@
 
 namespace App\Models;
 
+use App\Observers\TagObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Collection; // Import Collection
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache; // Import Collection
 
+#[ObservedBy([TagObserver::class])]
 class Tag extends Model
 {
     use HasFactory;
@@ -41,11 +45,13 @@ class Tag extends Model
      */
     public static function buildTrees(): Collection
     {
-        $tags = Tag::all();
+        return Cache::rememberForever('tagtrees', function () {
+            $tags = Tag::all();
 
-        return $tags->whereNull('super_tag')
-            ->map(fn ($tag) => static::buildTree($tags, $tag))
-            ->values();
+            return $tags->whereNull('super_tag')
+                ->map(fn ($tag) => static::buildTree($tags, $tag))
+                ->values();
+        });
     }
 
     /**
