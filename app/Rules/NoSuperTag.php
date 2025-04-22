@@ -8,52 +8,36 @@ use Illuminate\Contracts\Validation\ValidationRule;
 
 class NoSuperTag implements ValidationRule
 {
+    /**
+     * Run the validation rule.
+     *
+     * @param  string  $attribute  The name of the attribute being validated (e.g., 'tag_ids').
+     * @param  mixed  $value  The value of the attribute being validated (the array of tag IDs).
+     * @param  Closure  $fail  The callback function to call on failure.
+     */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        // 1) Normalize input
-        $submitted = array_unique((array) $value);
+        $submittedTagIds = array_unique($value);
 
-        // 2) Get the hierarchy as a nested array
-        $trees = Tag::buildTrees()->toArray();
+        if (count($submittedTagIds) <= 1) {
+            return;
+        }
 
-        // 3) Build parent & name maps
-        $parentMap = [];
-        $nameMap = [];
+        foreach ($submittedTagIds as $potentialSuperTagId) {
+            $superTagNode = Tag::findTagNodeInTrees($potentialSuperTagId);
 
-        $buildMaps = function ($nodes, ?string $parentId = null) use (&$parentMap, &$nameMap, &$buildMaps) {
-            foreach ($nodes as $node) {
-                $id = $node['id'];
-                $name = $node['name'];
+            if ($superTagNode) {
+                $descendantIds = Tag::getDescendantIds($potentialSuperTagId);
+                $otherSubmittedTagIds = array_diff($submittedTagIds, [$potentialSuperTagId]);
+                $violatingDescendantIds = array_intersect($descendantIds, $otherSubmittedTagIds);
 
-                $nameMap[$id] = $name;
-                if ($parentId !== null) {
-                    $parentMap[$id] = $parentId;
-                }
+                if (! empty($violatingDescendantIds)) {
+                    $violatingTagId = reset($violatingDescendantIds);
+                    $superTagName = $superTagNode['name'];
+                    $violatingTagNode = Tag::findTagNodeInTrees($violatingTagId);
+                    $violatingTagName = $violatingTagNode['name'];
 
-                if (! empty($node['children'])) {
-                    $buildMaps($node['children'], $id);
-                }
-            }
-        };
-
-        $buildMaps($trees);
-
-        // 4) Helper to get all ancestors of a tag
-        $getAncestors = function (string $id) use ($parentMap): array {
-            $ancestors = [];
-            while (isset($parentMap[$id])) {
-                $ancestors[] = $parentMap[$id];
-                $id = $parentMap[$id];
-            }
-
-            return $ancestors;
-        };
-
-        // 5) Fail on any tag that shares an ancestor in the submitted list
-        foreach ($submitted as $tagId) {
-            foreach ($getAncestors($tagId) as $ancestorId) {
-                if (in_array($ancestorId, $submitted, true)) {
-                    $fail("You can’t select “{$nameMap[$tagId]}” together with its parent “{$nameMap[$ancestorId]}.”");
+                    $fail("The tag '{$violatingTagName}' cannot be a descendant of '{$superTagName}'.");
 
                     return;
                 }
