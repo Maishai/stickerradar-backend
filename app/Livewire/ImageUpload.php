@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Tag;
+use App\Rules\NoSuperTag;
 use App\Services\StickerService;
 use App\State;
 use Illuminate\Validation\Rule;
@@ -63,7 +64,7 @@ class ImageUpload extends Component
             'photo' => 'required|image|mimes:jpg,jpeg,png,gif|max:4096',
             'lat' => 'required|numeric|min:-90|max:90',
             'lon' => 'required|numeric|min:-180|max:180',
-            'selectedTags' => 'required|array',
+            'selectedTags' => ['required', 'array', new NoSuperTag],
             'selectedTags.*' => 'exists:tags,id',
             'selectedState' => [Rule::enum(State::class)],
         ]);

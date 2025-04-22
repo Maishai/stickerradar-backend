@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\StickerResource;
 use App\Models\Sticker;
 use App\Rules\MaxTileSize;
+use App\Rules\NoSuperTag;
 use App\Rules\StickerImage;
 use App\Services\StickerService;
 use App\State;
@@ -51,7 +52,7 @@ class StickerApiController extends Controller
             'lat' => 'required|numeric|min:-90|max:90',
             'lon' => 'required|numeric|min:-180|max:180',
             'image' => ['required', new StickerImage],
-            'tags' => 'required|array',
+            'tags' => ['required', 'array', new NoSuperTag],
             'tags.*' => 'exists:tags,id',
             'state' => [Rule::enum(State::class)],
         ]);

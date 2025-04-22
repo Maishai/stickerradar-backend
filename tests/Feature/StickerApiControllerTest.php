@@ -257,4 +257,21 @@ class StickerApiControllerTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    public function test_store_invalid_tags_has_error()
+    {
+        $base64Image = base64_encode(file_get_contents('storage/example-images/fussball.jpeg'));
+        $parent = Tag::factory()->create();
+        $child = Tag::factory(['super_tag' => $parent->id])->create();
+
+        $response = $this->postJson(route('api.stickers.store'), [
+            'lat' => 40.7128,
+            'lon' => -74.0060,
+            'image' => 'data:image/jpeg;base64,'.$base64Image,
+            'tags' => [$parent->id, $child->id],
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['tags']);
+    }
 }
