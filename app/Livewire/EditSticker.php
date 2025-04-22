@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Sticker;
 use App\Models\Tag;
+use App\Rules\NoSuperTag;
 use App\State;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -33,7 +34,7 @@ class EditSticker extends Component
     public function save()
     {
         $this->validate([
-            'selectedTags' => 'array',
+            'selectedTags' => ['array', new NoSuperTag],
             'selectedTags.*' => 'exists:tags,id',
             'selectedState' => [Rule::enum(State::class)],
             'lastSeen' => 'date',
