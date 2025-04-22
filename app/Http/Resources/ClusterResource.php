@@ -38,7 +38,7 @@ class ClusterResource extends JsonResource
                 'lon' => (float) $this->centroid->getLongitude(),
             ],
             /** @var array<string, int> */
-            'tagCounts' => $tagCounts,
+            'tag_counts' => $tagCounts,
             /** @var int */
             'count' => $this->markers->count(),
             'stickers' => $this->when($request->boolean('include_stickers'), StickerResource::collection($this->markers)),

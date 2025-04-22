@@ -37,7 +37,7 @@ class ClusterApiController extends Controller
         $maxLat = $request->float('max_lat');
         $minLon = $request->float('min_lon');
         $maxLon = $request->float('max_lon');
-        $epsilon = $request->float('epsilon', 10.5);
+        $epsilon = $request->float('epsilon', 5);
         $minSamples = $request->integer('min_samples', 2);
 
         $stickers = Sticker::query()
@@ -77,7 +77,7 @@ class ClusterApiController extends Controller
         $minLon = $request->float('min_lon');
         $maxLon = $request->float('max_lon');
         $epsilon = $request->float('epsilon', 10.5);
-        $minSamples = $request->integer('min_samples', 2);
+        $minSamples = $request->integer('min_samples', 1);
 
         $allSubTags = $this->getAllSubTags($tag);
 
