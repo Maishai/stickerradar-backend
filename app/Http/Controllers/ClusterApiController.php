@@ -79,7 +79,7 @@ class ClusterApiController extends Controller
         $epsilon = $request->float('epsilon', 10.5);
         $minSamples = $request->integer('min_samples', 1);
 
-        $allSubTags = $this->getAllSubTags($tag);
+        $allSubTags = Tag::getDescendantIds($tag->id);
 
         $stickers = Sticker::query()
             ->with('tags')
@@ -101,42 +101,17 @@ class ClusterApiController extends Controller
         return ClusterResource::collection(DefaultClusterer::cluster($stickers, $config)->values());
     }
 
-    private function getAllSubTags(Tag $parentTag)
-    {
-        $allSubTags = collect();
-        $stack = $parentTag->subTags->all();
-
-        while (! empty($stack)) {
-            $tag = array_pop($stack);
-            $allSubTags->push($tag->id);
-
-            if (! $tag->relationLoaded('subTags')) {
-                $tag->load('subTags');
-            }
-            $stack = array_merge($stack, $tag->subTags->all());
-        }
-
-        return $allSubTags->push($parentTag->id);
-    }
-
     private function resolveSubTagsToParent(array $parentTags): array 
     {
         $tagMap = [];
     
         foreach ($parentTags as $parentTag) {
-            $subtags = $parentTag->subTags->all();
-
-            while (! empty($subtags))
-            {
-                $tag = array_pop($subtags);
-                $tagMap[$tag->id] = $parentTag->id;
-    
-                if (! $tag->relationLoaded('subTags')) {
-                    $tag->load('subTags');
-                }
-    
-                $subtags = array_merge($subtags, $tag->subTags->all());
+            $subtags = Tag::getDescendantIds($parentTag->id);
+            
+            foreach ($subtags as $tagId) {
+                $tagMap[$tagId] = $parentTag->id;
             }
+            $subtags[$parentTag->id] = $parentTag->id;
         }
         return $tagMap;
     }
