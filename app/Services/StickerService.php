@@ -33,13 +33,16 @@ class StickerService
             'lat' => $data['lat'],
             'lon' => $data['lon'],
             'filename' => $filename,
-            'state' => $state,
-            'last_seen' => now(),
         ]);
 
         foreach ($tagIds as $tagId) {
             $sticker->tags()->attach($tagId);
         }
+
+        $sticker->stateHistory()->create([
+            'state' => $state,
+            'last_seen' => now(),
+        ]);
 
         // Save the decoded image to the filesystem
         Storage::disk('public')->put("stickers/{$filename}", $imageData);

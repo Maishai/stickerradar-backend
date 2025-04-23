@@ -22,7 +22,7 @@ class StickerResource extends JsonResource
             /**
              * @var State
              */
-            'state' => $this->state,
+            'state' => $this->latestStateHistory->state,
             /**
              * YYYY-MM-DD, e.g. 2025-01-25
              *
@@ -30,7 +30,7 @@ class StickerResource extends JsonResource
              *
              * @format /^\d{4}-\d{2}-\d{2}$/
              */
-            'last_seen' => $this->last_seen,
+            'last_seen' => $this->latestStateHistory->last_seen,
             'filename' => $this->filename,
             /**
              * @var array<string>

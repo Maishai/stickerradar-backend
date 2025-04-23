@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\StateHistory;
 use App\Models\Sticker;
 use App\Models\Tag;
 use App\Services\StickerService;
@@ -42,6 +43,7 @@ class StickerApiControllerTest extends TestCase
 
         $base64Image = base64_encode(file_get_contents('storage/example-images/fussball.jpeg'));
 
+        $this->freezeTime();
         $response = $this->postJson(route('api.stickers.store'), [
             'lat' => 40.7128,
             'lon' => -74.0060,
@@ -77,6 +79,12 @@ class StickerApiControllerTest extends TestCase
             'state' => State::EXISTS->value,
         ]);
 
+        $this->assertDatabaseHas('stateHistory', [
+            'sticker_id' => Sticker::latest()->first()->id,
+            'state' => State::EXISTS->value,
+            'last_seen' => now(),
+        ]);
+
         foreach ($tags as $tag) {
             $this->assertDatabaseHas('sticker_tag', [
                 'sticker_id' => Sticker::latest()->first()->id,
@@ -94,6 +102,7 @@ class StickerApiControllerTest extends TestCase
 
         $base64Image = base64_encode(file_get_contents('storage/example-images/fussball.jpeg'));
 
+        $this->freezeTime();
         $response = $this->postJson(route('api.stickers.store'), [
             'lat' => 40.7128,
             'lon' => -74.0060,
@@ -110,6 +119,12 @@ class StickerApiControllerTest extends TestCase
                     'tags' => $tags->pluck('id')->toArray(),
                 ],
             ]);
+
+        $this->assertDatabaseHas('stateHistory', [
+            'sticker_id' => Sticker::latest()->first()->id,
+            'state' => State::EXISTS->value,
+            'last_seen' => now(),
+        ]);
 
         $this->assertDatabaseHas('stickers', [
             'lat' => 40.7128,
@@ -227,6 +242,7 @@ class StickerApiControllerTest extends TestCase
 
         $response = $this->getJson(route('api.stickers.show', $sticker->id));
 
+        ds($sticker->latestStateHistory);
         $response->assertOk()
             ->assertJsonStructure([
                 'data' => [
@@ -243,8 +259,8 @@ class StickerApiControllerTest extends TestCase
                     'id' => $sticker->id,
                     'lat' => $sticker->lat,
                     'lon' => $sticker->lon,
-                    'state' => $sticker->state->value,
-                    'last_seen' => $sticker->last_seen,
+                    'state' => $sticker->latestStateHistory()->state,
+                    'last_seen' => $sticker->latestStateHistory()->last_seen,
                     'filename' => $sticker->filename,
                     'tags' => $sticker->tags->pluck('id')->toArray(),
                 ],
