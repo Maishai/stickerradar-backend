@@ -47,7 +47,7 @@ class StickerApiController extends Controller
             'lon' => 'required|numeric|min:-180|max:180',
             'image' => ['required', new StickerImage],
             'tags' => ['required', 'array', new NoSuperTag],
-            'tags.*' => 'exists:tags,id',
+            'tags.*' => 'uuid|exists:tags,id',
             'state' => [Rule::enum(State::class)],
         ]);
 
@@ -77,7 +77,7 @@ class StickerApiController extends Controller
     {
         $validated = $request->validate([
             'tags' => ['required', 'array', new NoSuperTag],
-            'tags.*' => 'exists:tags,id',
+            'tags.*' => 'uuid|exists:tags,id',
         ]);
 
         $sticker->tags()->sync($request->array('tags'));
