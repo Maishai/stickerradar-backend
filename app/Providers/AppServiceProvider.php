@@ -24,10 +24,12 @@ class AppServiceProvider extends ServiceProvider
     {
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(env('THROTTLE_API_REQUESTS_PER_MINUTE', 30))->by($request->ip());
-
         });
         RateLimiter::for('sticker-upload', function (Request $request) {
             return Limit::perMinute(env('THROTTLE_STICKER_UPLOADS_PER_MINUTE', 5))->by($request->ip());
+        });
+        RateLimiter::for('sticker-update-tags', function (Request $request) {
+            return Limit::perMinute(env('THROTTLE_STICKER_UPDATE_TAGS', 1))->by($request->ip());
         });
     }
 }

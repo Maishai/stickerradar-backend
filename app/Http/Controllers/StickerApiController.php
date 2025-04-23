@@ -21,9 +21,6 @@ class StickerApiController extends Controller
         $this->stickerService = $stickerService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $request->validate([
@@ -43,9 +40,6 @@ class StickerApiController extends Controller
         return StickerResource::collection($stickers);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -63,8 +57,8 @@ class StickerApiController extends Controller
         ];
 
         $state = isset($validated['state'])
-        ? State::from($validated['state'])
-        : State::EXISTS;
+            ? State::from($validated['state'])
+            : State::EXISTS;
 
         return new StickerResource($this->stickerService->createSticker(
             $data,
@@ -74,11 +68,18 @@ class StickerApiController extends Controller
         ));
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($uuid)
     {
         return new StickerResource(Sticker::query()->with('tags')->findOrFail($uuid));
+    }
+
+    public function update(Request $request, Sticker $sticker)
+    {
+        $validated = $request->validate([
+            'tags' => ['required', 'array', new NoSuperTag],
+            'tags.*' => 'exists:tags,id',
+        ]);
+
+        $sticker->tags()->sync($request->array('tags'));
     }
 }

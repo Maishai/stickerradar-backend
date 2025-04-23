@@ -15,6 +15,7 @@ Route::name('api.')->middleware(['throttle:api'])->group(function () {
         Route::post('', [StickerApiController::class, 'store'])->middleware(['throttle:sticker-upload'])->name('store');
         Route::get('', [StickerApiController::class, 'index'])->name('index');
         Route::get('{sticker}', [StickerApiController::class, 'show'])->name('show');
+        Route::put('{sticker}', [StickerApiController::class, 'update'])->middleware(['throttle:sticker-update-tags'])->name('update');
     });
     Route::get('tags/tree', [TagApiController::class, 'tree'])->name('tags.tree');
     Route::resource('tags', TagApiController::class)->only(['index', 'show']);
