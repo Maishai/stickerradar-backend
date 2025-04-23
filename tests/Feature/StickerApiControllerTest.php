@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\StateHistory;
 use App\Models\Sticker;
 use App\Models\Tag;
 use App\Services\StickerService;
@@ -76,10 +75,9 @@ class StickerApiControllerTest extends TestCase
         $this->assertDatabaseHas('stickers', [
             'lat' => 40.7128,
             'lon' => -74.0060,
-            'state' => State::EXISTS->value,
         ]);
 
-        $this->assertDatabaseHas('stateHistory', [
+        $this->assertDatabaseHas('state_histories', [
             'sticker_id' => Sticker::latest()->first()->id,
             'state' => State::EXISTS->value,
             'last_seen' => now(),
@@ -120,7 +118,7 @@ class StickerApiControllerTest extends TestCase
                 ],
             ]);
 
-        $this->assertDatabaseHas('stateHistory', [
+        $this->assertDatabaseHas('state_histories', [
             'sticker_id' => Sticker::latest()->first()->id,
             'state' => State::EXISTS->value,
             'last_seen' => now(),
@@ -129,7 +127,6 @@ class StickerApiControllerTest extends TestCase
         $this->assertDatabaseHas('stickers', [
             'lat' => 40.7128,
             'lon' => -74.0060,
-            'state' => State::EXISTS->value,
         ]);
 
         $filename = Sticker::first()->filename;
@@ -242,7 +239,6 @@ class StickerApiControllerTest extends TestCase
 
         $response = $this->getJson(route('api.stickers.show', $sticker->id));
 
-        ds($sticker->latestStateHistory);
         $response->assertOk()
             ->assertJsonStructure([
                 'data' => [
@@ -259,8 +255,8 @@ class StickerApiControllerTest extends TestCase
                     'id' => $sticker->id,
                     'lat' => $sticker->lat,
                     'lon' => $sticker->lon,
-                    'state' => $sticker->latestStateHistory()->state,
-                    'last_seen' => $sticker->latestStateHistory()->last_seen,
+                    'state' => $sticker->latestStateHistory->state->value,
+                    'last_seen' => $sticker->latestStateHistory->last_seen,
                     'filename' => $sticker->filename,
                     'tags' => $sticker->tags->pluck('id')->toArray(),
                 ],
