@@ -18,6 +18,7 @@ class Sticker extends Model implements Clusterable
     use HasUlids;
 
     protected $fillable = ['lat', 'lon', 'last_seen', 'filename', 'state'];
+
     protected $with = ['latestStateHistory'];
 
     public function tags(): BelongsToMany
@@ -32,7 +33,7 @@ class Sticker extends Model implements Clusterable
 
     public function latestStateHistory(): HasOne
     {
-        return $this->hasOne(StateHistory::class)->latestOfMany();
+        return $this->hasOne(StateHistory::class)->latestOfMany('last_seen');
     }
 
     public function getClusterableCoordinate(): Coordinate
