@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\State;
 use EmilKlindt\MarkerClusterer\Interfaces\Clusterable;
+use Illuminate\Contracts\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -42,6 +44,12 @@ class Sticker extends Model implements Clusterable
             $this->lat,
             $this->lon,
         ]);
+    }
+
+    #[Scope]
+    protected function olderThanTenMinutes(Builder $query): void
+    {
+        $query->where('created_at', '<=', now()->subMinutes(10));
     }
 
     protected $casts = [

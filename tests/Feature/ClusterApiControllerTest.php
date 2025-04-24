@@ -57,6 +57,8 @@ class ClusterApiControllerTest extends TestCase
         $transphob_sticker2 = Sticker::factory(['lat' => 24.00000005, 'lon' => 24])->create();
         $transphob_sticker2->tags()->sync([$transphob->id]);
 
+        $this->travel(10)->minutes();
+
         $response = $this->getJson(route('api.stickers.clusters.show', ['min_lat' => 15, 'max_lat' => 25, 'min_lon' => 15, 'max_lon' => 25, 'tag' => $politik->id]));
 
         $response->assertOk()
@@ -107,7 +109,6 @@ class ClusterApiControllerTest extends TestCase
                     ],
                 ],
             ]);
-
     }
 
     public function test_cluster_stickers_by_parent_multiple_tags()
@@ -155,6 +156,8 @@ class ClusterApiControllerTest extends TestCase
         $queerphob_sticker2->tags()->sync([$queerphob->id]);
         $transphob_sticker2 = Sticker::factory(['lat' => 24.00000005, 'lon' => 24])->create();
         $transphob_sticker2->tags()->sync([$transphob->id]);
+
+        $this->travel(10)->minutes();
 
         $response = $this->postJson(route('api.stickers.clusters.showMultiple'), [
             'min_lat' => 15,
@@ -212,6 +215,77 @@ class ClusterApiControllerTest extends TestCase
                     ],
                 ],
             ]);
+    }
 
+    public function test_cluster_stickers_by_parent_single_tag_doesnt_return_stickers_younger_than_ten_minutes()
+    {
+        $politik = Tag::factory()->create();
+        $links = Tag::factory(['super_tag' => $politik->id])->create();
+        $rechts = Tag::factory(['super_tag' => $politik->id])->create();
+
+        $linker_sticker = Sticker::factory(['lat' => 16, 'lon' => 16])->create();
+        $linker_sticker->tags()->sync([$links->id]);
+
+        $this->travel(10)->minutes();
+
+        $rechter_sticker = Sticker::factory(['lat' => 20, 'lon' => 20])->create();
+        $rechter_sticker->tags()->sync([$rechts->id]);
+
+        $response = $this->getJson(route('api.stickers.clusters.show', ['min_lat' => 15, 'max_lat' => 25, 'min_lon' => 15, 'max_lon' => 25, 'tag' => $politik->id]));
+
+        $response->assertOk()
+            ->assertJson([
+                'data' => [
+                    [
+                        'centroid' => [
+                            'lat' => 16,
+                            'lon' => 16,
+                        ],
+                        'tag_counts' => [
+                            $links->id => 1,
+                        ],
+                        'count' => 1,
+                    ],
+                ],
+            ]);
+    }
+
+    public function test_cluster_stickers_by_parent_multiple_tags_doesnt_return_stickers_younger_than_ten_minutes()
+    {
+        $politik = Tag::factory()->create();
+        $links = Tag::factory(['super_tag' => $politik->id])->create();
+        $rechts = Tag::factory(['super_tag' => $politik->id])->create();
+
+        $linker_sticker = Sticker::factory(['lat' => 16, 'lon' => 16])->create();
+        $linker_sticker->tags()->sync([$links->id]);
+
+        $this->travel(10)->minutes();
+
+        $rechter_sticker = Sticker::factory(['lat' => 20, 'lon' => 20])->create();
+        $rechter_sticker->tags()->sync([$rechts->id]);
+
+        $response = $this->postJson(route('api.stickers.clusters.showMultiple'), [
+            'min_lat' => 15,
+            'max_lat' => 25,
+            'min_lon' => 15,
+            'max_lon' => 25,
+            'tags' => [$links->id, $rechts->id],
+        ]);
+
+        $response->assertOk()
+            ->assertJson([
+                'data' => [
+                    [
+                        'centroid' => [
+                            'lat' => 16,
+                            'lon' => 16,
+                        ],
+                        'tag_counts' => [
+                            $links->id => 1,
+                        ],
+                        'count' => 1,
+                    ],
+                ],
+            ]);
     }
 }

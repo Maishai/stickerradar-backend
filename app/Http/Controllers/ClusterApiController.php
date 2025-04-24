@@ -42,6 +42,7 @@ class ClusterApiController extends Controller
         $minSamples = $request->integer('min_samples', 2);
 
         $stickers = Sticker::query()
+            ->olderThanTenMinutes()
             ->with('tags')
             ->whereBetween('lat', [$minLat, $maxLat])
             ->whereBetween('lon', [$minLon, $maxLon])
@@ -83,6 +84,7 @@ class ClusterApiController extends Controller
         $allSubTags = Tag::getDescendantIds($tag->id);
 
         $stickers = Sticker::query()
+            ->olderThanTenMinutes()
             ->with('tags')
             ->whereBetween('lat', [$minLat, $maxLat])
             ->whereBetween('lon', [$minLon, $maxLon])
@@ -136,6 +138,7 @@ class ClusterApiController extends Controller
         $allSubTags = array_unique($allSubTags);
 
         $stickers = Sticker::query()
+            ->olderThanTenMinutes()
             ->with('tags')
             ->whereBetween('lat', [$minLat, $maxLat])
             ->whereBetween('lon', [$minLon, $maxLon])

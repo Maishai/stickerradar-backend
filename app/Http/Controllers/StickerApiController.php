@@ -32,6 +32,7 @@ class StickerApiController extends Controller
         ]);
 
         $stickers = Sticker::query()
+            ->olderThanTenMinutes()
             ->with('tags')
             ->whereBetween('lat', [$request->float('min_lat'), $request->float('max_lat')])
             ->whereBetween('lon', [$request->float('min_lon'), $request->float('max_lon')])
