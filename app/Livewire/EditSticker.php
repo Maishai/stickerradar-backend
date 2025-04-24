@@ -26,8 +26,8 @@ class EditSticker extends Component
     {
         $this->sticker = $sticker;
         $this->selectedTags = $sticker->tags->pluck('id')->toArray();
-        $this->selectedState = $sticker->state;
-        $this->lastSeen = $sticker->last_seen;
+        $this->selectedState = $sticker->latestStateHistory->state;
+        $this->lastSeen = $sticker->latestStateHistory->last_seen;
         $this->tags = Tag::all();
     }
 
@@ -42,7 +42,7 @@ class EditSticker extends Component
         // fucking datepicker returns the date of the day before
         $date = Carbon::parse($this->lastSeen)->addDay()->format('Y-m-d');
 
-        $this->sticker->update([
+        $this->sticker->stateHistory()->create([
             'state' => $this->selectedState,
             'last_seen' => $date,
         ]);
