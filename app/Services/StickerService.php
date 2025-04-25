@@ -14,7 +14,7 @@ class StickerService
     /**
      * Create a new sticker with the given data and image
      */
-    public function createSticker(array $data, string $base64Image, array $tagIds, State $state = State::EXISTS): Sticker
+    public function createSticker(array $cords, string $base64Image, array $tagIds, State $state = State::EXISTS): Sticker
     {
         if (! preg_match('/^data:image\/(\w+);base64,/', $base64Image, $matches)) {
             throw new \InvalidArgumentException('Invalid base64 image format.');
@@ -30,8 +30,8 @@ class StickerService
         $filename = Str::uuid().'.'.$extension;
 
         $sticker = Sticker::create([
-            'lat' => $data['lat'],
-            'lon' => $data['lon'],
+            'lat' => $cords['lat'],
+            'lon' => $cords['lon'],
             'filename' => $filename,
         ]);
 

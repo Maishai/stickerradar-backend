@@ -38,14 +38,14 @@ class InsertExampleStickers extends Command
             null,
             true
         );
-
+        $base64Image1 = 'data:image/jpg;base64,'.base64_encode(file_get_contents($path1));
         $coordinates1 = $stickerService->extractCoordinatesFromExif($file1);
 
         $tagIds1 = [Tag::where('name', 'Politik')->first()->id];
 
         $sticker1 = $stickerService->createSticker(
             $coordinates1,
-            $file1,
+            $base64Image1,
             $tagIds1
         );
         $this->info('Created sticker ID: '.$sticker1->id);
@@ -59,6 +59,7 @@ class InsertExampleStickers extends Command
             null,
             true
         );
+        $base64Image2 = 'data:image/jpeg;base64,'.base64_encode(file_get_contents($path2));
 
         $coordinates2 = $stickerService->extractCoordinatesFromExif($file2);
 
@@ -66,7 +67,7 @@ class InsertExampleStickers extends Command
 
         $sticker2 = $stickerService->createSticker(
             $coordinates2,
-            $file2,
+            $base64Image2,
             $tagIds2
         );
         $this->info('Created sticker ID: '.$sticker2->id);
@@ -80,13 +81,13 @@ class InsertExampleStickers extends Command
             null,
             true
         );
-
+        $base64Image3 = 'data:image/jpeg;base64,'.base64_encode(file_get_contents($path3));
         $coordinates3 = $stickerService->extractCoordinatesFromExif($file3);
         $tagIds3 = [Tag::where('name', 'Links')->first()->id];
 
         $sticker3 = $stickerService->createSticker(
             $coordinates3,
-            $file3,
+            $base64Image3,
             $tagIds3
         );
         $this->info('Created sticker ID: '.$sticker3->id);
@@ -100,11 +101,12 @@ class InsertExampleStickers extends Command
             null,
             true
         );
+        $base64Image4 = 'data:image/jpeg;base64,'.base64_encode(file_get_contents($path4));
         $coordinates4 = $stickerService->extractCoordinatesFromExif($file4);
         $tagIds4 = [Tag::where('name', 'Fußball')->first()->id];
         $sticker4 = $stickerService->createSticker(
             $coordinates4,
-            $file4,
+            $base64Image4,
             $tagIds4
         );
         $this->info('Created sticker ID: '.$sticker4->id);
