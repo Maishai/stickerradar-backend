@@ -6,6 +6,7 @@ use App\State;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StateHistory extends Model
 {
@@ -13,6 +14,11 @@ class StateHistory extends Model
     use HasUuids;
 
     protected $fillable = ['sticker_id', 'state', 'last_seen'];
+
+    public function sticker(): BelongsTo
+    {
+        return $this->belongsTo(Sticker::class);
+    }
 
     protected $casts = [
         'state' => State::class,

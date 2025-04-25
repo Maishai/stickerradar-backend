@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ClusterApiController;
+use App\Http\Controllers\HistoryApiController;
 use App\Http\Controllers\StickerApiController;
 use App\Http\Controllers\TagApiController;
 use Illuminate\Support\Facades\Route;
@@ -11,6 +12,11 @@ Route::name('api.')->middleware(['throttle:api'])->group(function () {
             Route::get('', [ClusterApiController::class, 'index'])->name('index');
             Route::get('{tag}', [ClusterApiController::class, 'show'])->name('show');
             Route::post('', [ClusterApiController::class, 'showMultiple'])->name('showMultiple');
+        });
+        Route::name('history.')->prefix('history')->group(function () {
+            Route::get('', [HistoryApiController::class, 'index'])->name('index');
+            Route::get('{sticker}', [HistoryApiController::class, 'show'])->name('show');
+            Route::post('{sticker}', [HistoryApiController::class, 'update'])->name('update');
         });
         Route::post('', [StickerApiController::class, 'store'])->middleware(['throttle:sticker-upload'])->name('store');
         Route::get('', [StickerApiController::class, 'index'])->name('index');
