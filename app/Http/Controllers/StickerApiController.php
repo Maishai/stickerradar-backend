@@ -57,7 +57,7 @@ class StickerApiController extends Controller
             'lon' => $validated['lon'],
         ];
 
-        $state = $request->enum('state') ?? State::EXISTS;
+        $state = $request->enum('state', State::class) ?? State::EXISTS;
 
         return new StickerResource($this->stickerService->createSticker(
             $data,

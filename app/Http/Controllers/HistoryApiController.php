@@ -74,7 +74,7 @@ class HistoryApiController extends Controller
             'state' => ['nullable', Rule::enum(State::class)],
         ]);
 
-        $state = $request->enum('state') ?? $sticker->latestStateHistory->state;
+        $state = $request->enum('state', State::class) ?? $sticker->latestStateHistory->state;
 
         return $sticker->stateHistory()->create(['state' => $state, 'last_seen' => now()])->toResource();
     }
