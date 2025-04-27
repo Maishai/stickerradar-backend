@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Dtos\Bounds;
 use App\Http\Resources\ClusterResource;
 use App\Models\Sticker;
 use App\Models\Tag;
@@ -9,7 +10,6 @@ use App\Rules\MaxTileSize;
 use App\Rules\NoSuperTag;
 use EmilKlindt\MarkerClusterer\Facades\DefaultClusterer;
 use EmilKlindt\MarkerClusterer\Models\Config;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 
 class ClusterApiController extends Controller
@@ -34,24 +34,16 @@ class ClusterApiController extends Controller
             'min_samples' => 'nullable|integer|min:1|max:100',
         ]);
 
-        $minLat = $request->float('min_lat');
-        $maxLat = $request->float('max_lat');
-        $minLon = $request->float('min_lon');
-        $maxLon = $request->float('max_lon');
-        $epsilon = $request->float('epsilon', 5);
-        $minSamples = $request->integer('min_samples', 2);
+        $config = new Config([
+            'epsilon' => $request->float('epsilon', 5),
+            'minSamples' => $request->integer('min_samples', 2),
+        ]);
 
         $stickers = Sticker::query()
             ->olderThanTenMinutes()
+            ->withinBounds(Bounds::fromRequest($request))
             ->with('tags')
-            ->whereBetween('lat', [$minLat, $maxLat])
-            ->whereBetween('lon', [$minLon, $maxLon])
             ->get();
-
-        $config = new Config([
-            'epsilon' => $epsilon,
-            'minSamples' => $minSamples,
-        ]);
 
         return ClusterResource::collection(DefaultClusterer::cluster($stickers, $config)->values());
     }
@@ -74,32 +66,35 @@ class ClusterApiController extends Controller
             'min_samples' => 'nullable|integer|min:1|max:100',
         ]);
 
-        $minLat = $request->float('min_lat');
-        $maxLat = $request->float('max_lat');
-        $minLon = $request->float('min_lon');
-        $maxLon = $request->float('max_lon');
-        $epsilon = $request->float('epsilon', 10.5);
-        $minSamples = $request->integer('min_samples', 1);
+        $config = new Config([
+            'epsilon' => $request->float('epsilon', 5),
+            'minSamples' => $request->integer('min_samples', 2),
+        ]);
 
-        $allSubTags = Tag::getDescendantIds($tag->id);
+        $tagMap = $tag->subTags->flatMap(fn ($t) => collect(Tag::getDescendantIds($t->id))
+            ->push($t->id)
+            ->mapWithKeys(fn ($id) => [$id => $t->id])
+        );
+
+        $allSubTags = $tagMap->keys()->unique();
 
         $stickers = Sticker::query()
             ->olderThanTenMinutes()
+            ->withinBounds(Bounds::fromRequest($request))
             ->with('tags')
-            ->whereBetween('lat', [$minLat, $maxLat])
-            ->whereBetween('lon', [$minLon, $maxLon])
             ->whereHas('tags', function ($query) use ($allSubTags) {
                 $query->whereIn('tags.id', $allSubTags);
             })
             ->get();
 
-        $config = new Config([
-            'epsilon' => $epsilon,
-            'minSamples' => $minSamples,
-        ]);
-
-        $tagMap = $this->resolveSubTagsToParent($tag->subTags->all());
-        $stickers = $this->replaceTagsWithParents($stickers, $tagMap);
+        $stickers->each(function ($sticker) use ($tagMap) {
+            $sticker->count_tags = $sticker->tags
+                ->pluck('id')
+                ->map(fn ($id) => $tagMap->get($id))
+                ->filter()
+                ->unique()
+                ->values();
+        });
 
         return ClusterResource::collection(DefaultClusterer::cluster($stickers, $config)->values());
     }
@@ -121,77 +116,37 @@ class ClusterApiController extends Controller
             'tags.*' => 'required|uuid|exists:tags,id',
         ]);
 
-        $minLat = $request->float('min_lat');
-        $maxLat = $request->float('max_lat');
-        $minLon = $request->float('min_lon');
-        $maxLon = $request->float('max_lon');
-        $epsilon = $request->float('epsilon', 10.5);
-        $minSamples = $request->integer('min_samples', 1);
-        $tags = $request->array('tags');
+        $config = new Config([
+            'epsilon' => $request->float('epsilon', 5),
+            'minSamples' => $request->integer('min_samples', 2),
+        ]);
 
-        $allSubTags = [];
-        foreach ($tags as $tagId) {
-            $descendants = Tag::getDescendantIds($tagId);
-            $allSubTags[] = $tagId;
-            $allSubTags = array_merge($allSubTags, $descendants);
-        }
-        $allSubTags = array_unique($allSubTags);
+        $tagMap = $request->collect('tags')
+            ->mapWithKeys(fn ($tagId) => collect(Tag::getDescendantIds($tagId))
+                ->push($tagId)
+                ->mapWithKeys(fn ($id) => [$id => $tagId])
+            );
+
+        $allSubTags = $tagMap->keys()->unique();
 
         $stickers = Sticker::query()
             ->olderThanTenMinutes()
             ->with('tags')
-            ->whereBetween('lat', [$minLat, $maxLat])
-            ->whereBetween('lon', [$minLon, $maxLon])
+            ->withinBounds(Bounds::fromRequest($request))
             ->whereHas('tags', function ($query) use ($allSubTags) {
                 $query->whereIn('tags.id', $allSubTags);
             })
             ->get();
 
-        $config = new Config([
-            'epsilon' => $epsilon,
-            'minSamples' => $minSamples,
-        ]);
-
-        $tagMap = $this->resolveSubTagsToParent($tags);
-        $stickers = $this->replaceTagsWithParents($stickers, $tagMap);
+        $stickers->each(function ($sticker) use ($tagMap) {
+            $sticker->count_tags = $sticker->tags
+                ->pluck('id')
+                ->map(fn ($id) => $tagMap->get($id))
+                ->filter()
+                ->unique()
+                ->values();
+        });
 
         return ClusterResource::collection(DefaultClusterer::cluster($stickers, $config)->values());
-    }
-
-    private function resolveSubTagsToParent(array $parentTags): array
-    {
-        $tagMap = [];
-
-        foreach ($parentTags as $parentTag) {
-            $parentId = is_object($parentTag) ? $parentTag->id : $parentTag;
-
-            $subtags = Tag::getDescendantIds($parentId);
-
-            foreach ($subtags as $tagId) {
-                $tagMap[$tagId] = $parentId;
-            }
-            $tagMap[$parentId] = $parentId;
-        }
-
-        return $tagMap;
-    }
-
-    private function replaceTagsWithParents(Collection $stickers, array $tagMap): Collection
-    {
-        foreach ($stickers as $sticker) {
-            $newTags = [];
-
-            foreach ($sticker['tags'] as $tag) {
-                $tagId = $tag['id'];
-
-                if (array_key_exists($tagId, $tagMap)) {
-                    $newTags[] = $tagMap[$tagId];
-                }
-            }
-
-            $sticker['count_tags'] = array_values(array_unique($newTags));
-        }
-
-        return $stickers;
     }
 }

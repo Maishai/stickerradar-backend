@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Dtos\Bounds;
 use App\Http\Requests\StoreStickerRequest;
 use App\Http\Resources\StickerResource;
 use App\Models\Sticker;
@@ -32,9 +33,8 @@ class StickerApiController extends Controller
 
         $stickers = Sticker::query()
             ->olderThanTenMinutes()
+            ->withinBounds(Bounds::fromRequest($request))
             ->with('tags')
-            ->whereBetween('lat', [$request->float('min_lat'), $request->float('max_lat')])
-            ->whereBetween('lon', [$request->float('min_lon'), $request->float('max_lon')])
             ->get();
 
         return StickerResource::collection($stickers);

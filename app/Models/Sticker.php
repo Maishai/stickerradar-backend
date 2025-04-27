@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Dtos\Bounds;
 use App\State;
 use EmilKlindt\MarkerClusterer\Interfaces\Clusterable;
 use Illuminate\Contracts\Database\Query\Builder;
@@ -50,6 +51,13 @@ class Sticker extends Model implements Clusterable
     protected function olderThanTenMinutes(Builder $query): void
     {
         $query->where('created_at', '<=', now()->subMinutes(10));
+    }
+
+    #[Scope]
+    protected function withinBounds(Builder $query, Bounds $bounds): void
+    {
+        $query->whereBetween('lat', [$bounds->minLat, $bounds->maxLat])
+            ->whereBetween('lon', [$bounds->minLon, $bounds->maxLon]);
     }
 
     protected $casts = [

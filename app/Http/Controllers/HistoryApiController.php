@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Dtos\Bounds;
 use App\Models\Sticker;
 use App\Rules\MaxTileSize;
 use App\State;
@@ -29,8 +30,7 @@ class HistoryApiController extends Controller
         return Sticker::query()
             ->without('latestStateHistory')
             ->olderThanTenMinutes()
-            ->whereBetween('lat', [$request->float('min_lat'), $request->float('max_lat')])
-            ->whereBetween('lon', [$request->float('min_lon'), $request->float('max_lon')])
+            ->withinBounds(Bounds::fromRequest($request))
             ->with([
                 'latestStateHistory' => function ($q) use ($date) {
                     $q->where('last_seen', '<=', $date);
