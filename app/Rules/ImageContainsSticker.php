@@ -40,11 +40,10 @@ class ImageContainsSticker implements ValidationRule
                 ]);
             if ($response->successful()) {
                 $prob = $response->json('sticker_probability', 0);
+                Log::info("Handling sticker with probability of $prob");
                 if ($prob <= 0.95) {
-                    Log::info("Rejecting sticker, since probability is only $prob");
                     $fail("The {$attribute} does not appear to contain a sticker (probability: ".round($prob * 100, 1).'%).');
                 }
-                Log::info("Accepting sticker with probability of $prob");
             }
         } catch (\Throwable $e) {
             // network error, timeout, invalid JSON, etc. => treat as valid
