@@ -9,6 +9,7 @@ use App\Services\StickerService;
 use App\State;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Livewire;
 use Mockery;
@@ -26,6 +27,11 @@ class ImageUploadTest extends TestCase
 
     public function test_coordinates_are_extracted_when_image_has_exif_data()
     {
+        Http::fake([
+            env('CLASSIFIER_URI') => Http::response([
+                'sticker_probability' => 0.99,
+            ], 200),
+        ]);
         $fakeImage = UploadedFile::fake()->image('photo.jpg');
 
         $mock = Mockery::mock(StickerService::class);
@@ -45,6 +51,11 @@ class ImageUploadTest extends TestCase
 
     public function test_it_sets_coordinates_when_exif_data_exists()
     {
+        Http::fake([
+            env('CLASSIFIER_URI') => Http::response([
+                'sticker_probability' => 0.99,
+            ], 200),
+        ]);
         $mock = Mockery::mock(StickerService::class);
         $mock->shouldReceive('extractCoordinatesFromExif')->andReturn(['lat' => 48.123456, 'lon' => 11.654321]);
 
@@ -61,6 +72,11 @@ class ImageUploadTest extends TestCase
 
     public function test_no_coordinates_sets_error_flag()
     {
+        Http::fake([
+            env('CLASSIFIER_URI') => Http::response([
+                'sticker_probability' => 0.99,
+            ], 200),
+        ]);
         $fakeImage = UploadedFile::fake()->image('photo.jpg');
 
         $mock = Mockery::mock(StickerService::class);
@@ -79,6 +95,11 @@ class ImageUploadTest extends TestCase
 
     public function test_it_saves_the_sticker_with_valid_data()
     {
+        Http::fake([
+            env('CLASSIFIER_URI') => Http::response([
+                'sticker_probability' => 0.99,
+            ], 200),
+        ]);
         $mockSticker = new Sticker(['id' => 123]);
         $mock = Mockery::mock(StickerService::class);
         $mock->shouldReceive('extractCoordinatesFromExif')->andReturn(['lat' => 10, 'lon' => 20]);

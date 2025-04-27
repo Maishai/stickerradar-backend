@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreStickerRequest;
 use App\Http\Resources\StickerResource;
 use App\Models\Sticker;
 use App\Rules\MaxTileSize;
 use App\Rules\NoSuperTag;
-use App\Rules\StickerImage;
 use App\Services\StickerService;
 use App\State;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class StickerApiController extends Controller
 {
@@ -41,30 +40,20 @@ class StickerApiController extends Controller
         return StickerResource::collection($stickers);
     }
 
-    public function store(Request $request)
+    public function store(StoreStickerRequest $request)
     {
-        $validated = $request->validate([
-            'lat' => 'required|numeric|min:-90|max:90',
-            'lon' => 'required|numeric|min:-180|max:180',
-            'image' => ['required', new StickerImage],
-            'tags' => ['required', 'array', new NoSuperTag],
-            'tags.*' => 'uuid|exists:tags,id',
-            'state' => [Rule::enum(State::class)],
-        ]);
-
-        $data = [
-            'lat' => $validated['lat'],
-            'lon' => $validated['lon'],
-        ];
+        $validated = $request->validated();
 
         $state = $request->enum('state', State::class) ?? State::EXISTS;
 
-        return new StickerResource($this->stickerService->createSticker(
-            $data,
-            $validated['image'],
-            $validated['tags'],
-            $state
-        ));
+        return new StickerResource(
+            $this->stickerService->createSticker(
+                ['lat' => $validated['lat'], 'lon' => $validated['lon']],
+                $validated['image'],
+                $validated['tags'],
+                $state
+            )
+        );
     }
 
     public function show($uuid)

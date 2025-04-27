@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Tag;
+use App\Rules\ImageContainsSticker;
 use App\Rules\NoSuperTag;
 use App\Services\StickerService;
 use App\State;
@@ -40,7 +41,7 @@ class ImageUpload extends Component
     public function updatedPhoto()
     {
         $this->validate([
-            'photo' => 'required|image|mimes:jpg,jpeg,png,gif|max:4096',
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,gif', 'max:4096', new ImageContainsSticker],
         ]);
 
         // Reset coordinates and error state
@@ -61,7 +62,7 @@ class ImageUpload extends Component
     public function save()
     {
         $this->validate([
-            'photo' => 'required|image|mimes:jpg,jpeg,png,gif|max:4096',
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,gif', 'max:4096', new ImageContainsSticker],
             'lat' => 'required|numeric|min:-90|max:90',
             'lon' => 'required|numeric|min:-180|max:180',
             'selectedTags' => ['required', 'array', new NoSuperTag],

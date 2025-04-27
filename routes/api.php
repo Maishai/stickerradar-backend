@@ -4,6 +4,7 @@ use App\Http\Controllers\ClusterApiController;
 use App\Http\Controllers\HistoryApiController;
 use App\Http\Controllers\StickerApiController;
 use App\Http\Controllers\TagApiController;
+use App\Http\Middleware\EnsureApiKeyIsValid;
 use Illuminate\Support\Facades\Route;
 
 Route::name('api.')->middleware(['throttle:api'])->group(function () {
@@ -18,7 +19,9 @@ Route::name('api.')->middleware(['throttle:api'])->group(function () {
             Route::get('{sticker}', [HistoryApiController::class, 'show'])->name('show');
             Route::post('{sticker}', [HistoryApiController::class, 'update'])->name('update');
         });
-        Route::post('', [StickerApiController::class, 'store'])->middleware(['throttle:sticker-upload'])->name('store');
+        Route::post('', [StickerApiController::class, 'store'])
+            ->middleware(['throttle:sticker-upload', EnsureApiKeyIsValid::class])
+            ->name('store');
         Route::get('', [StickerApiController::class, 'index'])->name('index');
         Route::get('{sticker}', [StickerApiController::class, 'show'])->name('show');
         Route::put('{sticker}', [StickerApiController::class, 'update'])->middleware(['throttle:sticker-update-tags'])->name('update');
