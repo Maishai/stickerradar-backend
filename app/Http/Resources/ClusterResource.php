@@ -7,6 +7,19 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ClusterResource extends JsonResource
 {
+    /** @var bool */
+    protected $includeStickers = false;
+
+    /**
+     * Setter so the controller can turn this on or off.
+     */
+    public function includeStickers(bool $include): self
+    {
+        $this->includeStickers = $include;
+
+        return $this;
+    }
+
     /**
      * Transform the resource into an array.
      *
@@ -40,7 +53,7 @@ class ClusterResource extends JsonResource
             'tag_counts' => $tagCounts,
             /** @var int */
             'count' => $this->markers->count(),
-            'stickers' => $this->when($request->boolean('include_stickers'), StickerResource::collection($this->markers)),
+            'stickers' => $this->when($this->includeStickers, StickerResource::collection($this->markers)),
         ];
     }
 }

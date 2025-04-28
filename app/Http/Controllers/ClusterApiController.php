@@ -3,14 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Dtos\Bounds;
+use App\Http\Resources\ClusterCollection;
 use App\Http\Resources\ClusterResource;
 use App\Models\Sticker;
 use App\Models\Tag;
 use App\Rules\MaxTileSize;
 use App\Rules\NoSuperTag;
+use App\StickerInclusion;
 use EmilKlindt\MarkerClusterer\Facades\DefaultClusterer;
 use EmilKlindt\MarkerClusterer\Models\Config;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ClusterApiController extends Controller
 {
@@ -29,10 +32,12 @@ class ClusterApiController extends Controller
             'max_lon' => ['required', 'numeric', 'between:-180,180'],
             'epsilon' => 'nullable|numeric|min:0.1|max:100',
             /** @var bool */
-            'include_stickers' => ['nullable', 'in:0,1,true,false'],
+            'include_stickers' => ['nullable', Rule::enum(StickerInclusion::class)],
             /** @var int */
             'min_samples' => 'nullable|integer|min:1|max:100',
         ]);
+
+        $stickerInclusion = $request->enum('include_stickers', StickerInclusion::class) ?? StickerInclusion::DYNAMIC;
 
         $config = new Config([
             'epsilon' => $request->float('epsilon', 5),
@@ -45,7 +50,14 @@ class ClusterApiController extends Controller
             ->with('tags')
             ->get();
 
-        return ClusterResource::collection(DefaultClusterer::cluster($stickers, $config)->values());
+        $includeStickers = match ($stickerInclusion) {
+            StickerInclusion::INCLUDE => true,
+            StickerInclusion::HIDE => false,
+            StickerInclusion::DYNAMIC => $stickers->count() <= 15,
+        };
+
+        return new ClusterCollection(DefaultClusterer::cluster($stickers, $config)->values())
+            ->includeStickers($includeStickers);
     }
 
     /**
