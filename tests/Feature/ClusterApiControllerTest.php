@@ -305,8 +305,6 @@ class ClusterApiControllerTest extends TestCase
             // include stickers dynamic is default
         ]));
 
-        ds($response->json());
-
         $response
             ->assertOk()
             ->assertJsonCount(1, 'data')
@@ -341,7 +339,7 @@ class ClusterApiControllerTest extends TestCase
             );
     }
 
-    public function test_stickers_should_always_be_included__on_include_mode()
+    public function test_stickers_should_always_be_included_on_include_mode()
     {
         $linker_sticker = Sticker::factory(['lat' => 16, 'lon' => 16])->count(20)->create();
 
@@ -365,7 +363,7 @@ class ClusterApiControllerTest extends TestCase
             );
     }
 
-    public function test_stickers_should_never_be_included__on_hide_mode()
+    public function test_stickers_should_never_be_included_on_hide_mode()
     {
         $linker_sticker = Sticker::factory(['lat' => 16, 'lon' => 16])->count(1)->create();
 

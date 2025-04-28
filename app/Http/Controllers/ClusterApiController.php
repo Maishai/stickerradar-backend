@@ -31,7 +31,6 @@ class ClusterApiController extends Controller
             'min_lon' => ['required', 'numeric', 'between:-180,180'],
             'max_lon' => ['required', 'numeric', 'between:-180,180'],
             'epsilon' => 'nullable|numeric|min:0.1|max:100',
-            /** @var bool */
             'include_stickers' => ['nullable', Rule::enum(StickerInclusion::class)],
             /** @var int */
             'min_samples' => 'nullable|integer|min:1|max:100',
@@ -41,7 +40,7 @@ class ClusterApiController extends Controller
 
         $config = new Config([
             'epsilon' => $request->float('epsilon', 5),
-            'minSamples' => $request->integer('min_samples', 2),
+            'minSamples' => $request->integer('min_samples', 1),
         ]);
 
         $stickers = Sticker::query()
@@ -72,16 +71,17 @@ class ClusterApiController extends Controller
             'min_lon' => ['required', 'numeric', 'between:-180,180'],
             'max_lon' => ['required', 'numeric', 'between:-180,180'],
             'epsilon' => 'nullable|numeric|min:0.1|max:100',
-            /** @var bool */
-            'include_stickers' => ['nullable', 'in:0,1,true,false'],
+            'include_stickers' => ['nullable', Rule::enum(StickerInclusion::class)],
             /** @var int */
             'min_samples' => 'nullable|integer|min:1|max:100',
         ]);
 
         $config = new Config([
             'epsilon' => $request->float('epsilon', 5),
-            'minSamples' => $request->integer('min_samples', 2),
+            'minSamples' => $request->integer('min_samples', 1),
         ]);
+
+        $stickerInclusion = $request->enum('include_stickers', StickerInclusion::class) ?? StickerInclusion::DYNAMIC;
 
         $tagMap = $tag->subTags->flatMap(fn ($t) => collect(Tag::getDescendantIds($t->id))
             ->push($t->id)
@@ -99,6 +99,12 @@ class ClusterApiController extends Controller
             })
             ->get();
 
+        $includeStickers = match ($stickerInclusion) {
+            StickerInclusion::INCLUDE => true,
+            StickerInclusion::HIDE => false,
+            StickerInclusion::DYNAMIC => $stickers->count() <= 15,
+        };
+
         $stickers->each(function ($sticker) use ($tagMap) {
             $sticker->count_tags = $sticker->tags
                 ->pluck('id')
@@ -108,7 +114,8 @@ class ClusterApiController extends Controller
                 ->values();
         });
 
-        return ClusterResource::collection(DefaultClusterer::cluster($stickers, $config)->values());
+        return new ClusterCollection(DefaultClusterer::cluster($stickers, $config)->values())
+            ->includeStickers($includeStickers);
     }
 
     public function showMultiple(Request $request)
@@ -120,8 +127,7 @@ class ClusterApiController extends Controller
             'min_lon' => ['required', 'numeric', 'between:-180,180'],
             'max_lon' => ['required', 'numeric', 'between:-180,180'],
             'epsilon' => 'nullable|numeric|min:0.1|max:100',
-            /** @var bool */
-            'include_stickers' => ['nullable', 'in:0,1,true,false'],
+            'include_stickers' => ['nullable', Rule::enum(StickerInclusion::class)],
             /** @var int */
             'min_samples' => 'nullable|integer|min:1|max:100',
             'tags' => ['required', 'array', new NoSuperTag],
@@ -130,8 +136,10 @@ class ClusterApiController extends Controller
 
         $config = new Config([
             'epsilon' => $request->float('epsilon', 5),
-            'minSamples' => $request->integer('min_samples', 2),
+            'minSamples' => $request->integer('min_samples', 1),
         ]);
+
+        $stickerInclusion = $request->enum('include_stickers', StickerInclusion::class) ?? StickerInclusion::DYNAMIC;
 
         $tagMap = $request->collect('tags')
             ->mapWithKeys(fn ($tagId) => collect(Tag::getDescendantIds($tagId))
@@ -150,6 +158,12 @@ class ClusterApiController extends Controller
             })
             ->get();
 
+        $includeStickers = match ($stickerInclusion) {
+            StickerInclusion::INCLUDE => true,
+            StickerInclusion::HIDE => false,
+            StickerInclusion::DYNAMIC => $stickers->count() <= 15,
+        };
+
         $stickers->each(function ($sticker) use ($tagMap) {
             $sticker->count_tags = $sticker->tags
                 ->pluck('id')
@@ -159,6 +173,7 @@ class ClusterApiController extends Controller
                 ->values();
         });
 
-        return ClusterResource::collection(DefaultClusterer::cluster($stickers, $config)->values());
+        return new ClusterCollection(DefaultClusterer::cluster($stickers, $config)->values())
+            ->includeStickers($includeStickers);
     }
 }
