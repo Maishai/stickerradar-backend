@@ -40,7 +40,7 @@ class TagsComponent extends Component
     public function saveTag()
     {
         $validated = $this->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|unique:tags|max:255',
             'super_tag' => 'nullable|exists:tags,id',
             'color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
         ]);
