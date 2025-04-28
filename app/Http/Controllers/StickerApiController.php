@@ -21,6 +21,9 @@ class StickerApiController extends Controller
         $this->stickerService = $stickerService;
     }
 
+    /**
+     * Get all stickers in a viewport.
+     **/
     public function index(Request $request)
     {
         $request->validate([
@@ -40,6 +43,12 @@ class StickerApiController extends Controller
         return StickerResource::collection($stickers);
     }
 
+    /**
+     * Create a new Sticker
+     *
+     * This endpoint is heavily ratelimited.
+     * It also checks the incoming image using AI - to disable this, set the X-API-KEY header.
+     **/
     public function store(StoreStickerRequest $request)
     {
         $validated = $request->validated();
@@ -56,11 +65,19 @@ class StickerApiController extends Controller
         );
     }
 
+    /**
+     * Get a specific sticker by id
+     **/
     public function show($uuid)
     {
         return new StickerResource(Sticker::query()->with('tags')->findOrFail($uuid));
     }
 
+    /**
+     * Update tags of a sticker
+     *
+     * Just overwrite all tags of a sticker. Not sure if this is a good idea. Highly ratelimited.
+     **/
     public function update(Request $request, Sticker $sticker)
     {
         $validated = $request->validate([

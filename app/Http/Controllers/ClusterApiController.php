@@ -13,14 +13,17 @@ use App\StickerInclusion;
 use EmilKlindt\MarkerClusterer\Facades\DefaultClusterer;
 use EmilKlindt\MarkerClusterer\Models\Config;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Validation\Rule;
 
 class ClusterApiController extends Controller
 {
     /**
-     * Cluster all stickers.
+     * Cluster all stickers in a viewport.
      *
-     * @response array{data: ClusterResource[]}
+     * Epsilon determins how close stickers need to be together to be considered as neighbours.
+     *
+     * @response AnonymousResourceCollection<ClusterResource>
      */
     public function index(Request $request)
     {
@@ -30,7 +33,9 @@ class ClusterApiController extends Controller
             'max_lat' => ['required', 'numeric', 'between:-90,90'],
             'min_lon' => ['required', 'numeric', 'between:-180,180'],
             'max_lon' => ['required', 'numeric', 'between:-180,180'],
+            // determins how close stickers need to be together to be considered as neighbours
             'epsilon' => 'nullable|numeric|min:0.1|max:100',
+            // include or hide stickers. Dynamic mode includes them, if there are max 15 in total (not per cluster)
             'include_stickers' => ['nullable', Rule::enum(StickerInclusion::class)],
             /** @var int */
             'min_samples' => 'nullable|integer|min:1|max:100',
@@ -61,6 +66,10 @@ class ClusterApiController extends Controller
 
     /**
      * Cluster stickers based on one parent tag.
+     *
+     * E.g. clustering on "Politk" tag will resolve counts of stickers to its direct ancestors ("Links", "Rechts")
+     *
+     * @response AnonymousResourceCollection<ClusterResource>
      */
     public function show(Request $request, Tag $tag)
     {
@@ -70,7 +79,9 @@ class ClusterApiController extends Controller
             'max_lat' => ['required', 'numeric', 'between:-90,90'],
             'min_lon' => ['required', 'numeric', 'between:-180,180'],
             'max_lon' => ['required', 'numeric', 'between:-180,180'],
+            // determins how close stickers need to be together to be considered as neighbours
             'epsilon' => 'nullable|numeric|min:0.1|max:100',
+            // include or hide stickers. Dynamic mode includes them, if there are max 15 in total (not per cluster)
             'include_stickers' => ['nullable', Rule::enum(StickerInclusion::class)],
             /** @var int */
             'min_samples' => 'nullable|integer|min:1|max:100',
@@ -118,6 +129,13 @@ class ClusterApiController extends Controller
             ->includeStickers($includeStickers);
     }
 
+    /**
+     * Cluster stickers based on multiple tags.
+     *
+     * Will resolve counts of stickers to the specified tags.
+     *
+     * @response AnonymousResourceCollection<ClusterResource>
+     */
     public function showMultiple(Request $request)
     {
         $request->validate([
@@ -126,7 +144,9 @@ class ClusterApiController extends Controller
             'max_lat' => ['required', 'numeric', 'between:-90,90'],
             'min_lon' => ['required', 'numeric', 'between:-180,180'],
             'max_lon' => ['required', 'numeric', 'between:-180,180'],
+            // determins how close stickers need to be together to be considered as neighbours
             'epsilon' => 'nullable|numeric|min:0.1|max:100',
+            // include or hide stickers. Dynamic mode includes them, if there are max 15 in total (not per cluster)
             'include_stickers' => ['nullable', Rule::enum(StickerInclusion::class)],
             /** @var int */
             'min_samples' => 'nullable|integer|min:1|max:100',

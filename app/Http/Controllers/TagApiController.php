@@ -8,7 +8,7 @@ use App\Models\Tag;
 class TagApiController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Get all tags
      */
     public function index()
     {
@@ -38,7 +38,7 @@ class TagApiController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Get a specific tag by id
      */
     public function show(Tag $tag)
     {
