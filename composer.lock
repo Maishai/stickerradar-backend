@@ -1790,16 +1790,16 @@
         },
         {
             "name": "laravel/framework",
-            "version": "v12.10.1",
+            "version": "v12.10.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/framework.git",
-                "reference": "3264999c3123f55b7651c275efb6942034c47eda"
+                "reference": "0f123cc857bc177abe4d417448d4f7164f71802a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/framework/zipball/3264999c3123f55b7651c275efb6942034c47eda",
-                "reference": "3264999c3123f55b7651c275efb6942034c47eda",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/0f123cc857bc177abe4d417448d4f7164f71802a",
+                "reference": "0f123cc857bc177abe4d417448d4f7164f71802a",
                 "shasum": ""
             },
             "require": {
@@ -2001,7 +2001,7 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2025-04-23T14:49:24+00:00"
+            "time": "2025-04-24T14:11:20+00:00"
         },
         {
             "name": "laravel/octane",
@@ -3043,16 +3043,16 @@
         },
         {
             "name": "livewire/flux",
-            "version": "v2.1.4",
+            "version": "v2.1.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/livewire/flux.git",
-                "reference": "a19709fc94f5a1b795ce24ad42662bd398c19371"
+                "reference": "e24f05be20fa1a0ca027a11c2eea763cc539c82e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/livewire/flux/zipball/a19709fc94f5a1b795ce24ad42662bd398c19371",
-                "reference": "a19709fc94f5a1b795ce24ad42662bd398c19371",
+                "url": "https://api.github.com/repos/livewire/flux/zipball/e24f05be20fa1a0ca027a11c2eea763cc539c82e",
+                "reference": "e24f05be20fa1a0ca027a11c2eea763cc539c82e",
                 "shasum": ""
             },
             "require": {
@@ -3100,9 +3100,9 @@
             ],
             "support": {
                 "issues": "https://github.com/livewire/flux/issues",
-                "source": "https://github.com/livewire/flux/tree/v2.1.4"
+                "source": "https://github.com/livewire/flux/tree/v2.1.5"
             },
-            "time": "2025-04-14T11:59:19+00:00"
+            "time": "2025-04-24T22:52:25+00:00"
         },
         {
             "name": "livewire/livewire",
@@ -3357,16 +3357,16 @@
         },
         {
             "name": "myclabs/deep-copy",
-            "version": "1.13.0",
+            "version": "1.13.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/myclabs/DeepCopy.git",
-                "reference": "024473a478be9df5fdaca2c793f2232fe788e414"
+                "reference": "1720ddd719e16cf0db4eb1c6eca108031636d46c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/024473a478be9df5fdaca2c793f2232fe788e414",
-                "reference": "024473a478be9df5fdaca2c793f2232fe788e414",
+                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/1720ddd719e16cf0db4eb1c6eca108031636d46c",
+                "reference": "1720ddd719e16cf0db4eb1c6eca108031636d46c",
                 "shasum": ""
             },
             "require": {
@@ -3405,7 +3405,7 @@
             ],
             "support": {
                 "issues": "https://github.com/myclabs/DeepCopy/issues",
-                "source": "https://github.com/myclabs/DeepCopy/tree/1.13.0"
+                "source": "https://github.com/myclabs/DeepCopy/tree/1.13.1"
             },
             "funding": [
                 {
@@ -3413,7 +3413,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-02-12T12:17:51+00:00"
+            "time": "2025-04-29T12:36:36+00:00"
         },
         {
             "name": "nesbot/carbon",
@@ -5036,16 +5036,16 @@
         },
         {
             "name": "spatie/laravel-backup",
-            "version": "9.3.0",
+            "version": "9.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-backup.git",
-                "reference": "ab7580bc1d2785da560c7ef273e6904a100fdc3e"
+                "reference": "c5ced5777fa1c6e89a11afb6520e37e2b98d9a47"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-backup/zipball/ab7580bc1d2785da560c7ef273e6904a100fdc3e",
-                "reference": "ab7580bc1d2785da560c7ef273e6904a100fdc3e",
+                "url": "https://api.github.com/repos/spatie/laravel-backup/zipball/c5ced5777fa1c6e89a11afb6520e37e2b98d9a47",
+                "reference": "c5ced5777fa1c6e89a11afb6520e37e2b98d9a47",
                 "shasum": ""
             },
             "require": {
@@ -5120,7 +5120,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-backup/issues",
-                "source": "https://github.com/spatie/laravel-backup/tree/9.3.0"
+                "source": "https://github.com/spatie/laravel-backup/tree/9.3.2"
             },
             "funding": [
                 {
@@ -5132,7 +5132,7 @@
                     "type": "other"
                 }
             ],
-            "time": "2025-04-23T14:58:49+00:00"
+            "time": "2025-04-25T13:42:20+00:00"
         },
         {
             "name": "spatie/laravel-package-tools",
@@ -8627,26 +8627,27 @@
         },
         {
             "name": "laradumps/laradumps",
-            "version": "v4.0.3",
+            "version": "v4.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laradumps/laradumps.git",
-                "reference": "84954edaed1c652ee5a5df86a907124742ef88e4"
+                "reference": "aca61f1088d30b2e879551343b34e2a788735fdf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laradumps/laradumps/zipball/84954edaed1c652ee5a5df86a907124742ef88e4",
-                "reference": "84954edaed1c652ee5a5df86a907124742ef88e4",
+                "url": "https://api.github.com/repos/laradumps/laradumps/zipball/aca61f1088d30b2e879551343b34e2a788735fdf",
+                "reference": "aca61f1088d30b2e879551343b34e2a788735fdf",
                 "shasum": ""
             },
             "require": {
                 "illuminate/mail": "^10.0|^11.0|^12.0",
                 "illuminate/support": "^10.0|^11.0|^12.0",
-                "laradumps/laradumps-core": "^3.0",
+                "laradumps/laradumps-core": "^3.2.2",
                 "nunomaduro/termwind": "^1.15.1|^2.0.1",
                 "php": "^8.1"
             },
             "require-dev": {
+                "larastan/larastan": "^2.0|^3.0",
                 "laravel/framework": "^10.0|^11.0|^12.0",
                 "laravel/pint": "^1.17.2",
                 "livewire/livewire": "^3.5.6",
@@ -8686,7 +8687,7 @@
             "homepage": "https://github.com/laradumps/laradumps",
             "support": {
                 "issues": "https://github.com/laradumps/laradumps/issues",
-                "source": "https://github.com/laradumps/laradumps/tree/v4.0.3"
+                "source": "https://github.com/laradumps/laradumps/tree/v4.2.0"
             },
             "funding": [
                 {
@@ -8694,20 +8695,20 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-03-30T17:24:18+00:00"
+            "time": "2025-04-26T13:47:50+00:00"
         },
         {
             "name": "laradumps/laradumps-core",
-            "version": "v3.1.0",
+            "version": "3.2.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laradumps/laradumps-core.git",
-                "reference": "fa1adfa2b5b0f915dfe688ca155135869025ecec"
+                "reference": "251ae236bb6ecc5a1a044032edb77e01508d36df"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laradumps/laradumps-core/zipball/fa1adfa2b5b0f915dfe688ca155135869025ecec",
-                "reference": "fa1adfa2b5b0f915dfe688ca155135869025ecec",
+                "url": "https://api.github.com/repos/laradumps/laradumps-core/zipball/251ae236bb6ecc5a1a044032edb77e01508d36df",
+                "reference": "251ae236bb6ecc5a1a044032edb77e01508d36df",
                 "shasum": ""
             },
             "require": {
@@ -8755,7 +8756,7 @@
             "homepage": "https://github.com/laradumps/laradumps-core",
             "support": {
                 "issues": "https://github.com/laradumps/laradumps-core/issues",
-                "source": "https://github.com/laradumps/laradumps-core/tree/v3.1.0"
+                "source": "https://github.com/laradumps/laradumps-core/tree/3.2.2"
             },
             "funding": [
                 {
@@ -8763,7 +8764,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-04-08T21:08:40+00:00"
+            "time": "2025-04-25T20:54:12+00:00"
         },
         {
             "name": "laravel/pail",
@@ -10632,16 +10633,16 @@
         },
         {
             "name": "spatie/backtrace",
-            "version": "1.7.1",
+            "version": "1.7.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/backtrace.git",
-                "reference": "0f2477c520e3729de58e061b8192f161c99f770b"
+                "reference": "9807de6b8fecfaa5b3d10650985f0348b02862b2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/backtrace/zipball/0f2477c520e3729de58e061b8192f161c99f770b",
-                "reference": "0f2477c520e3729de58e061b8192f161c99f770b",
+                "url": "https://api.github.com/repos/spatie/backtrace/zipball/9807de6b8fecfaa5b3d10650985f0348b02862b2",
+                "reference": "9807de6b8fecfaa5b3d10650985f0348b02862b2",
                 "shasum": ""
             },
             "require": {
@@ -10679,7 +10680,7 @@
                 "spatie"
             ],
             "support": {
-                "source": "https://github.com/spatie/backtrace/tree/1.7.1"
+                "source": "https://github.com/spatie/backtrace/tree/1.7.2"
             },
             "funding": [
                 {
@@ -10691,7 +10692,7 @@
                     "type": "other"
                 }
             ],
-            "time": "2024-12-02T13:28:15+00:00"
+            "time": "2025-04-28T14:55:53+00:00"
         },
         {
             "name": "staabm/side-effects-detector",
