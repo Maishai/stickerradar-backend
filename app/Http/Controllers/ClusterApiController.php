@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\ClusterPoint;
 use App\Http\Requests\ClusterIndexRequest;
 use App\Http\Requests\ClusterShowMultipleRequest;
 use App\Http\Resources\ClusterCollection;
@@ -10,7 +11,7 @@ use App\Models\Sticker;
 use App\Models\Tag;
 use App\StickerInclusion;
 use EmilKlindt\MarkerClusterer\Facades\DefaultClusterer;
-use EmilKlindt\MarkerClusterer\Models\Config;
+use EmilKlindt\MarkerClusterer\Models\Cluster;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ClusterApiController extends Controller
@@ -26,18 +27,32 @@ class ClusterApiController extends Controller
     {
         $stickerInclusion = $request->enum('include_stickers', StickerInclusion::class) ?? StickerInclusion::DYNAMIC;
 
-        $config = new Config([
-            'epsilon' => $request->float('epsilon', 5),
-            'minSamples' => $request->integer('min_samples', 1),
-        ]);
-
-        $stickers = Sticker::query()
+        // fetch only minimal fields needed for clustering
+        $points = Sticker::query()
+            ->without('latestStateHistory')
             ->olderThanTenMinutes()
             ->withinBounds($request->getBounds())
-            ->with('tags')
-            ->get();
+            ->get(['id', 'lat', 'lon'])
+            ->map(fn (Sticker $s) => new ClusterPoint($s->id, $s->lat, $s->lon));
 
-        return new ClusterCollection(DefaultClusterer::cluster($stickers, $request->getClusteringConfig())->values())
+        // clustering on lightweight points
+        $clusters = DefaultClusterer::cluster($points, $request->getClusteringConfig());
+
+        // load full sticker models
+        $fullStickersById = Sticker::with('tags')
+            ->whereIn('id', $points->pluck('id')->toArray())
+            ->get()
+            ->keyBy('id');
+
+        // replace cluster markers with full stickers
+        $clusters->each(function ($cluster) use ($fullStickersById) {
+            $cluster->markers = $cluster->markers
+                ->map(fn ($point) => $fullStickersById[$point->id] ?? null)
+                ->filter()
+                ->values();
+        });
+
+        return new ClusterCollection($clusters->values())
             ->stickerInclusion($stickerInclusion);
     }
 
