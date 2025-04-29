@@ -2,19 +2,19 @@
 
 namespace App\Http\Resources;
 
+use App\StickerInclusion;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class ClusterCollection extends ResourceCollection
 {
-    /** @var bool */
-    protected $includeStickers = false;
+    protected StickerInclusion $stickerInclusion;
 
     /**
      * Controller can call this before returning.
      */
-    public function includeStickers(bool $include): self
+    public function stickerInclusion(StickerInclusion $stickerInclusion): self
     {
-        $this->includeStickers = $include;
+        $this->stickerInclusion = $stickerInclusion;
 
         return $this;
     }
@@ -26,7 +26,7 @@ class ClusterCollection extends ResourceCollection
     {
         return [
             'data' => $this->collection->map(fn ($cluster) => new ClusterResource($cluster)
-                ->includeStickers($this->includeStickers)
+                ->stickerInclusion($this->stickerInclusion)
                 ->toArray($request)
             ),
         ];

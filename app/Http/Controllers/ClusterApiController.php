@@ -2,19 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Dtos\Bounds;
+use App\Http\Requests\ClusterIndexRequest;
+use App\Http\Requests\ClusterShowMultipleRequest;
 use App\Http\Resources\ClusterCollection;
 use App\Http\Resources\ClusterResource;
 use App\Models\Sticker;
 use App\Models\Tag;
-use App\Rules\MaxTileSize;
-use App\Rules\NoSuperTag;
 use App\StickerInclusion;
 use EmilKlindt\MarkerClusterer\Facades\DefaultClusterer;
 use EmilKlindt\MarkerClusterer\Models\Config;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Validation\Rule;
 
 class ClusterApiController extends Controller
 {
@@ -25,22 +22,8 @@ class ClusterApiController extends Controller
      *
      * @response AnonymousResourceCollection<ClusterResource>
      */
-    public function index(Request $request)
+    public function index(ClusterIndexRequest $request)
     {
-        $request->validate([
-            /** @var float */
-            'min_lat' => ['required', 'numeric', 'between:-90,90', new MaxTileSize(1000)],
-            'max_lat' => ['required', 'numeric', 'between:-90,90'],
-            'min_lon' => ['required', 'numeric', 'between:-180,180'],
-            'max_lon' => ['required', 'numeric', 'between:-180,180'],
-            // determins how close stickers need to be together to be considered as neighbours
-            'epsilon' => 'nullable|numeric|min:0.1|max:100',
-            // include or hide stickers. Dynamic mode includes them, if there are max 15 in total (not per cluster)
-            'include_stickers' => ['nullable', Rule::enum(StickerInclusion::class)],
-            /** @var int */
-            'min_samples' => 'nullable|integer|min:1|max:100',
-        ]);
-
         $stickerInclusion = $request->enum('include_stickers', StickerInclusion::class) ?? StickerInclusion::DYNAMIC;
 
         $config = new Config([
@@ -50,18 +33,12 @@ class ClusterApiController extends Controller
 
         $stickers = Sticker::query()
             ->olderThanTenMinutes()
-            ->withinBounds(Bounds::fromRequest($request))
+            ->withinBounds($request->getBounds())
             ->with('tags')
             ->get();
 
-        $includeStickers = match ($stickerInclusion) {
-            StickerInclusion::INCLUDE => true,
-            StickerInclusion::HIDE => false,
-            StickerInclusion::DYNAMIC => $stickers->count() <= 15,
-        };
-
-        return new ClusterCollection(DefaultClusterer::cluster($stickers, $config)->values())
-            ->includeStickers($includeStickers);
+        return new ClusterCollection(DefaultClusterer::cluster($stickers, $request->getClusteringConfig())->values())
+            ->stickerInclusion($stickerInclusion);
     }
 
     /**
@@ -71,27 +48,8 @@ class ClusterApiController extends Controller
      *
      * @response AnonymousResourceCollection<ClusterResource>
      */
-    public function show(Request $request, Tag $tag)
+    public function show(ClusterIndexRequest $request, Tag $tag)
     {
-        $request->validate([
-            /** @var float */
-            'min_lat' => ['required', 'numeric', 'between:-90,90', new MaxTileSize(1000)],
-            'max_lat' => ['required', 'numeric', 'between:-90,90'],
-            'min_lon' => ['required', 'numeric', 'between:-180,180'],
-            'max_lon' => ['required', 'numeric', 'between:-180,180'],
-            // determins how close stickers need to be together to be considered as neighbours
-            'epsilon' => 'nullable|numeric|min:0.1|max:100',
-            // include or hide stickers. Dynamic mode includes them, if there are max 15 in total (not per cluster)
-            'include_stickers' => ['nullable', Rule::enum(StickerInclusion::class)],
-            /** @var int */
-            'min_samples' => 'nullable|integer|min:1|max:100',
-        ]);
-
-        $config = new Config([
-            'epsilon' => $request->float('epsilon', 5),
-            'minSamples' => $request->integer('min_samples', 1),
-        ]);
-
         $stickerInclusion = $request->enum('include_stickers', StickerInclusion::class) ?? StickerInclusion::DYNAMIC;
 
         $tagMap = $tag->subTags->flatMap(fn ($t) => collect(Tag::getDescendantIds($t->id))
@@ -103,18 +61,12 @@ class ClusterApiController extends Controller
 
         $stickers = Sticker::query()
             ->olderThanTenMinutes()
-            ->withinBounds(Bounds::fromRequest($request))
+            ->withinBounds($request->getBounds())
             ->with('tags')
             ->whereHas('tags', function ($query) use ($allSubTags) {
                 $query->whereIn('tags.id', $allSubTags);
             })
             ->get();
-
-        $includeStickers = match ($stickerInclusion) {
-            StickerInclusion::INCLUDE => true,
-            StickerInclusion::HIDE => false,
-            StickerInclusion::DYNAMIC => $stickers->count() <= 15,
-        };
 
         $stickers->each(function ($sticker) use ($tagMap) {
             $sticker->count_tags = $sticker->tags
@@ -125,8 +77,8 @@ class ClusterApiController extends Controller
                 ->values();
         });
 
-        return new ClusterCollection(DefaultClusterer::cluster($stickers, $config)->values())
-            ->includeStickers($includeStickers);
+        return new ClusterCollection(DefaultClusterer::cluster($stickers, $request->getClusteringConfig())->values())
+            ->stickerInclusion($stickerInclusion);
     }
 
     /**
@@ -136,29 +88,8 @@ class ClusterApiController extends Controller
      *
      * @response AnonymousResourceCollection<ClusterResource>
      */
-    public function showMultiple(Request $request)
+    public function showMultiple(ClusterShowMultipleRequest $request)
     {
-        $request->validate([
-            /** @var float */
-            'min_lat' => ['required', 'numeric', 'between:-90,90', new MaxTileSize(1000)],
-            'max_lat' => ['required', 'numeric', 'between:-90,90'],
-            'min_lon' => ['required', 'numeric', 'between:-180,180'],
-            'max_lon' => ['required', 'numeric', 'between:-180,180'],
-            // determins how close stickers need to be together to be considered as neighbours
-            'epsilon' => 'nullable|numeric|min:0.1|max:100',
-            // include or hide stickers. Dynamic mode includes them, if there are max 15 in total (not per cluster)
-            'include_stickers' => ['nullable', Rule::enum(StickerInclusion::class)],
-            /** @var int */
-            'min_samples' => 'nullable|integer|min:1|max:100',
-            'tags' => ['required', 'array', new NoSuperTag],
-            'tags.*' => 'required|uuid|exists:tags,id',
-        ]);
-
-        $config = new Config([
-            'epsilon' => $request->float('epsilon', 5),
-            'minSamples' => $request->integer('min_samples', 1),
-        ]);
-
         $stickerInclusion = $request->enum('include_stickers', StickerInclusion::class) ?? StickerInclusion::DYNAMIC;
 
         $tagMap = $request->collect('tags')
@@ -172,17 +103,11 @@ class ClusterApiController extends Controller
         $stickers = Sticker::query()
             ->olderThanTenMinutes()
             ->with('tags')
-            ->withinBounds(Bounds::fromRequest($request))
+            ->withinBounds($request->getBounds())
             ->whereHas('tags', function ($query) use ($allSubTags) {
                 $query->whereIn('tags.id', $allSubTags);
             })
             ->get();
-
-        $includeStickers = match ($stickerInclusion) {
-            StickerInclusion::INCLUDE => true,
-            StickerInclusion::HIDE => false,
-            StickerInclusion::DYNAMIC => $stickers->count() <= 15,
-        };
 
         $stickers->each(function ($sticker) use ($tagMap) {
             $sticker->count_tags = $sticker->tags
@@ -193,7 +118,7 @@ class ClusterApiController extends Controller
                 ->values();
         });
 
-        return new ClusterCollection(DefaultClusterer::cluster($stickers, $config)->values())
-            ->includeStickers($includeStickers);
+        return new ClusterCollection(DefaultClusterer::cluster($stickers, $request->getClusteringConfig())->values())
+            ->stickerInclusion($stickerInclusion);
     }
 }

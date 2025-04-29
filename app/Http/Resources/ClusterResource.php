@@ -2,20 +2,24 @@
 
 namespace App\Http\Resources;
 
+use App\StickerInclusion;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ClusterResource extends JsonResource
 {
-    /** @var bool */
-    protected $includeStickers = false;
+    protected bool $includeStickers;
 
     /**
      * Setter so the controller can turn this on or off.
      */
-    public function includeStickers(bool $include): self
+    public function stickerInclusion(StickerInclusion $stickerInclusion): self
     {
-        $this->includeStickers = $include;
+        $this->includeStickers = match ($stickerInclusion) {
+            StickerInclusion::INCLUDE => true,
+            StickerInclusion::HIDE => false,
+            StickerInclusion::DYNAMIC => $this->markers->count() <= 15,
+        };
 
         return $this;
     }
