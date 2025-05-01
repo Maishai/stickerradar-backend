@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Dtos\Bounds;
 use App\Http\Resources\StateHistoryResource;
+use App\Models\StateHistory;
 use App\Models\Sticker;
 use App\Rules\MaxTileSize;
 use App\State;
@@ -28,45 +29,17 @@ class HistoryApiController extends Controller
 
         $date = $request->date('date') ?? now();
 
-        /* Alte Query
-        return Sticker::query()
-            ->without('latestStateHistory')
-            ->olderThanTenMinutes()
-            ->withinBounds(Bounds::fromRequest($request))
-            ->with([
-                'latestStateHistory' => function ($q) use ($date) {
-                    $q->where('last_seen', '<=', $date);
-                },
-            ])
-            ->get()
-            ->pluck('latestStateHistory')
-            ->toResourceCollection();*/
-
-        $stickers = Sticker::query()
-            ->without('latestStateHistory')
-            ->olderThanTenMinutes()
-            ->withinBounds(Bounds::fromRequest($request))
+        $histories = StateHistory::query()
+            ->whereHas('sticker', function ($q) use ($request) {
+                $q->olderThanTenMinutes()
+                    ->withinBounds(Bounds::fromRequest($request));
+            })
+            ->where('last_seen', '<=', $date)
+            ->orderBy('sticker_id')
+            ->latest('last_seen')
             ->get();
 
-        $stickers->each(function ($sticker) use ($date) {
-            $sticker->setRelation('latestStateHistory', $sticker->latestStateHistoryBefore($date)->first());
-        });
-
-        return $stickers
-            ->pluck('latestStateHistory')
-            ->toResourceCollection();
-
-        /* Alternative, aber ist kein JSON mehr
-        $stateHistories = $stickers
-            ->map(function ($sticker) use ($date) {
-                return $sticker->stateHistory
-                    ->filter(fn ($history) => $history->last_seen <= $date)
-                    ->sortByDesc('last_seen')
-                    ->first();
-            })
-            ->filter();
-
-        return StateHistoryResource::collection($stateHistories);*/
+        return StateHistoryResource::collection($histories);
     }
 
     /**
@@ -75,28 +48,15 @@ class HistoryApiController extends Controller
     public function show(Request $request, Sticker $sticker)
     {
         $request->validate([
-            /** @var float */
             'date' => ['nullable', 'date'],
         ]);
 
         $date = $request->date('date') ?? now();
 
-        /* Alte Query
-        return $sticker
-            ->with([
-                'latestStateHistory' => function ($q) use ($date) {
-                    $q->where('last_seen', '<=', $date);
-                },
-            ])
-            ->get()
-            ->pluck('latestStateHistory')
-            ->first()
-            ->toResource();*/
-        return new StateHistoryResource(
+        return StateHistoryResource::collection(
             $sticker->stateHistory()
                 ->where('last_seen', '<=', $date)
-                ->orderBy('last_seen', 'desc')
-                ->firstOrFail()
+                ->get()
         );
     }
 

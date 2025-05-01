@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\StateHistory;
 use App\Models\Sticker;
 use App\State;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -20,7 +19,6 @@ class StateHistoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'id' => $this->faker->uuid(),
             'sticker_id' => Sticker::factory(),
             'state' => $this->faker->randomElement(array_column(State::cases(), 'value')),
             'last_seen' => $this->faker->dateTimeBetween('-30 days'),

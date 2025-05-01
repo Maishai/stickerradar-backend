@@ -14,10 +14,10 @@ Route::name('api.')->middleware(['throttle:api'])->group(function () {
             Route::get('{tag}', [ClusterApiController::class, 'show'])->name('show');
             Route::post('', [ClusterApiController::class, 'showMultiple'])->name('showMultiple');
         });
-        Route::name('history.')->prefix('history')->group(function () {
-            Route::get('', [HistoryApiController::class, 'index'])->name('index');
-            Route::get('{sticker}', [HistoryApiController::class, 'show'])->name('show');
-            Route::post('{sticker}', [HistoryApiController::class, 'update'])->name('update');
+        Route::name('history.')->group(function () {
+            Route::post('{sticker}/history', [HistoryApiController::class, 'update'])->name('update');
+            Route::get('{sticker}/history', [HistoryApiController::class, 'show'])->name('show');
+            Route::get('history', [HistoryApiController::class, 'index'])->name('index');
         });
         Route::post('', [StickerApiController::class, 'store'])
             ->middleware(['throttle:sticker-upload', EnsureApiKeyIsValid::class])

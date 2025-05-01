@@ -39,13 +39,6 @@ class Sticker extends Model implements Clusterable
         return $this->hasOne(StateHistory::class)->latestOfMany('last_seen');
     }
 
-    public function latestStateHistoryBefore($date)
-    {
-        return $this->hasOne(StateHistory::class)
-            ->where('last_seen', '<=', $date)
-            ->latest('last_seen');
-    }
-
     public function getClusterableCoordinate(): Coordinate
     {
         return new Coordinate([

@@ -20,7 +20,6 @@ class StickerFactory extends Factory
     public function definition(): array
     {
         return [
-            'id' => $this->faker->uuid(),
             'lat' => $this->faker->latitude(),
             'lon' => $this->faker->longitude(),
             'filename' => $this->faker->uuid().'.jpeg',
