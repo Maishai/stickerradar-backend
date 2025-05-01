@@ -33,7 +33,7 @@ class StickerFactory extends Factory
     {
         return $this->afterCreating(function (Sticker $sticker) {
             StateHistory::factory()
-                ->create(["sticker_id" => $sticker->id]);
+                ->create(['sticker_id' => $sticker->id]);
         });
     }
 }
