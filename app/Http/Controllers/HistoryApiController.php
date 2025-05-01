@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Dtos\Bounds;
+use App\Http\Resources\StateHistoryResource;
+use App\Models\StateHistory;
 use App\Models\Sticker;
 use App\Rules\MaxTileSize;
 use App\State;
@@ -27,18 +29,17 @@ class HistoryApiController extends Controller
 
         $date = $request->date('date') ?? now();
 
-        return Sticker::query()
-            ->without('latestStateHistory')
-            ->olderThanTenMinutes()
-            ->withinBounds(Bounds::fromRequest($request))
-            ->with([
-                'latestStateHistory' => function ($q) use ($date) {
-                    $q->where('last_seen', '<=', $date);
-                },
-            ])
-            ->get()
-            ->pluck('latestStateHistory')
-            ->toResourceCollection();
+        $histories = StateHistory::query()
+            ->whereHas('sticker', function ($q) use ($request) {
+                $q->olderThanTenMinutes()
+                    ->withinBounds(Bounds::fromRequest($request));
+            })
+            ->where('last_seen', '<=', $date)
+            ->orderBy('sticker_id')
+            ->latest('last_seen')
+            ->get();
+
+        return StateHistoryResource::collection($histories);
     }
 
     /**
@@ -47,22 +48,16 @@ class HistoryApiController extends Controller
     public function show(Request $request, Sticker $sticker)
     {
         $request->validate([
-            /** @var float */
             'date' => ['nullable', 'date'],
         ]);
 
         $date = $request->date('date') ?? now();
 
-        return $sticker
-            ->with([
-                'latestStateHistory' => function ($q) use ($date) {
-                    $q->where('last_seen', '<=', $date);
-                },
-            ])
-            ->get()
-            ->pluck('latestStateHistory')
-            ->first()
-            ->toResource();
+        return StateHistoryResource::collection(
+            $sticker->stateHistory()
+                ->where('last_seen', '<=', $date)
+                ->get()
+        );
     }
 
     /**
