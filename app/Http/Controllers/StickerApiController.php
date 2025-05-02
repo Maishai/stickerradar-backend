@@ -6,6 +6,7 @@ use App\Dtos\Bounds;
 use App\Http\Requests\StoreStickerRequest;
 use App\Http\Resources\StickerResource;
 use App\Models\Sticker;
+use App\Rules\ContainsUncertainTag;
 use App\Rules\MaxTileSize;
 use App\Rules\NoSuperTag;
 use App\Services\StickerService;
@@ -81,7 +82,7 @@ class StickerApiController extends Controller
     public function update(Request $request, Sticker $sticker)
     {
         $validated = $request->validate([
-            'tags' => ['required', 'array', new NoSuperTag],
+            'tags' => ['required', 'array', new NoSuperTag, new ContainsUncertainTag($sticker)],
             'tags.*' => 'uuid|exists:tags,id',
         ]);
 

@@ -304,4 +304,65 @@ class StickerApiControllerTest extends TestCase
             ->assertJsonCount(1, 'data')
             ->assertJsonFragment(['id' => $oldest->id]);
     }
+
+    public function test_update_with_with_valid_data()
+    {
+        $uncertainTag = Tag::factory()->create(['name' => 'Ich weiß es nicht']);
+        $sticker = Sticker::factory()->create();
+        $sticker->tags()->attach($uncertainTag);
+        $tag = Tag::factory()->create();
+
+        $response = $this->putJson(route('api.stickers.update', $sticker->id), [
+            'tags' => [$tag->id],
+        ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('sticker_tag', [
+            'sticker_id' => $sticker->id,
+            'tag_id' => $tag->id,
+        ]);
+        $this->assertDatabaseMissing('sticker_tag', [
+            'sticker_id' => $sticker->id,
+            'tag_id' => $uncertainTag->id,
+        ]);
+    }
+
+    public function test_update_without_uncertain_tag_should_fail()
+    {
+        $oldTag = Tag::factory()->create();
+        $sticker = Sticker::factory()->create();
+        $sticker->tags()->attach($oldTag);
+        $tag = Tag::factory()->create();
+
+        $response = $this->putJson(route('api.stickers.update', $sticker->id), [
+            'tags' => [$tag->id],
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['tags']);
+        $this->assertDatabaseHas('sticker_tag', [
+            'sticker_id' => $sticker->id,
+            'tag_id' => $oldTag->id,
+        ]);
+    }
+
+    public function test_update_with_tag_and_super_tag_should_fail()
+    {
+        $uncertainTag = Tag::factory()->create(['name' => 'Ich weiß es nicht']);
+        $sticker = Sticker::factory()->create();
+        $sticker->tags()->attach($uncertainTag);
+        $parentTag = Tag::factory()->create();
+        $childTag = Tag::factory()->withSpecificSuperTag($parentTag->id)->create();
+
+        $response = $this->putJson(route('api.stickers.update', $sticker->id), [
+            'tags' => [$parentTag->id, $childTag->id],
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['tags']);
+        $this->assertDatabaseHas('sticker_tag', [
+            'sticker_id' => $sticker->id,
+            'tag_id' => $uncertainTag->id,
+        ]);
+    }
 }
