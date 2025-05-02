@@ -29,4 +29,9 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 });
 
+Route::get('/app/{any?}', function () {
+    return file_get_contents(public_path('app/index.html'));
+})
+    ->where('any', '^(?!.*\..*$).*$');
+
 require __DIR__.'/auth.php';
