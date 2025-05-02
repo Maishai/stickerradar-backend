@@ -118,6 +118,22 @@ class HistoryApiControllerTest extends TestCase
             ]);
     }
 
+    public function test_index_filter_by_invalid_latitude_returns_validation_error()
+    {
+        $response = $this->getJson(route('api.stickers.history.index', ['min_lat' => -100, 'max_lat' => 110, 'min_lon' => -74, 'max_lon' => 25]));
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['min_lat', 'max_lat']);
+    }
+
+    public function test_index_filter_by_invalid_longitude_returns_validation_error()
+    {
+        $response = $this->getJson(route('api.stickers.history.index', ['min_lat' => -40, 'max_lat' => 60, 'min_lon' => -200, 'max_lon' => 200]));
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['min_lon', 'max_lon']);
+    }
+
     public function test_show_no_date_returns_correct_history()
     {
         $sticker = Sticker::factory()->create(['lat' => 20, 'lon' => 20]);
@@ -174,7 +190,7 @@ class HistoryApiControllerTest extends TestCase
             'state' => State::REMOVED,
         ]);
 
-        $response = $this->getJson(route('api.stickers.history.show', ['sticker' => $sticker, 'date' => $date->toString()]));
+        $response = $this->getJson(route('api.stickers.history.show', ['sticker' => $sticker->id, 'date' => $date->toString()]));
 
         $response->assertOk()
             ->assertJson([
@@ -195,7 +211,14 @@ class HistoryApiControllerTest extends TestCase
             ]);
     }
 
-    public function test_update_sticker_history()
+    public function test_show_history_for_non_existing_sticker_returns_not_found()
+    {
+        $response = $this->getJson(route('api.stickers.history.show', ['sticker' => 'non-existent-uuid']));
+
+        $response->assertNotFound();
+    }
+
+    public function test_update_sticker_history_with_state_creates_and_returns_history()
     {
         $sticker = Sticker::factory(['lat' => 20, 'lon' => 20])->create();
 
@@ -209,21 +232,72 @@ class HistoryApiControllerTest extends TestCase
 
         $this->freezeTime();
 
-        $response = $this->postJson(route('api.stickers.history.update', $sticker), ['state' => State::REMOVED]);
+        $response = $this->postJson(route('api.stickers.history.update', $sticker->id), ['state' => State::REMOVED]);
 
-        // $response->assertCreated()
-        //     ->assertJson([
-        //         'data' => [
-        //             'id' => $history1->id,
-        //             'sticker_id' => $sticker->id,
-        //             'state' => State::REMOVED->value,
-        //             'last_seen' => now()->format('Y-m-d H:i:s'),
-        //         ],
-        //     ]);
+        $response->assertCreated()
+            ->assertJson([
+                'data' => [
+                    'id' => $sticker->latestStateHistory->id,
+                    'sticker_id' => $sticker->id,
+                    'state' => State::REMOVED->value,
+                    'last_seen' => now()->setTimezone('UTC')->format('Y-m-d\TH:i:s.u\Z'),
+                ],
+            ]);
         $this->assertDatabaseHas('state_histories', [
             'sticker_id' => $sticker->id,
             'state' => State::REMOVED->value,
             'last_seen' => now()->format('Y-m-d H:i:s'),
         ]);
+    }
+
+    public function test_update_sticker_history_without_state_creates_and_returns_history()
+    {
+        $sticker = Sticker::factory(['lat' => 20, 'lon' => 20])->create();
+
+        $this->travel(10)->minutes();
+
+        $history1 = StateHistory::factory()->create([
+            'sticker_id' => $sticker->id,
+            'last_seen' => now(),
+            'state' => State::PARTIALLY_REMOVED,
+        ]);
+
+        $this->freezeTime();
+
+        $response = $this->postJson(route('api.stickers.history.update', $sticker->id));
+
+        $response->assertCreated()
+            ->assertJson([
+                'data' => [
+                    'id' => $sticker->latestStateHistory->id,
+                    'sticker_id' => $sticker->id,
+                    'state' => State::PARTIALLY_REMOVED->value,
+                    'last_seen' => now()->setTimezone('UTC')->format('Y-m-d\TH:i:s.u\Z'),
+                ],
+            ]);
+        $this->assertDatabaseHas('state_histories', [
+            'sticker_id' => $sticker->id,
+            'state' => State::PARTIALLY_REMOVED->value,
+            'last_seen' => now()->format('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public function test_update_history_for_non_existing_sticker_returns_not_found()
+    {
+        $response = $this->postJson(route('api.stickers.history.update', ['sticker' => 'non-existent-uuid']));
+
+        $response->assertNotFound();
+    }
+
+    public function test_update_history_with_invalid_state_enum_value_returns_validation_error()
+    {
+        $sticker = Sticker::factory(['lat' => 20, 'lon' => 20])->create();
+
+        $this->travel(10)->minutes();
+
+        $response = $this->postJson(route('api.stickers.history.update', $sticker->id), ['state' => 'invalid_state']);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['state']);
     }
 }
