@@ -84,31 +84,76 @@ class ClusterApiController extends Controller
     {
         $stickerInclusion = $request->enum('include_stickers', StickerInclusion::class) ?? StickerInclusion::DYNAMIC;
 
-        $tagMap = $request->collect('tags')
-            ->mapWithKeys(fn ($tagId) => collect(Tag::getDescendantIds($tagId))
-                ->push($tagId)
-                ->mapWithKeys(fn ($id) => [$id => $tagId])
-            );
+        $tags = $request->collect('tags') ?? collect();
+        $date = $request->date('date') ?? now();
+        $stickers = null;
 
-        $allSubTags = $tagMap->keys()->unique();
+        switch ($tags->count()) {
+            case 0:
+                $stickers = Sticker::query()
+                    ->olderThanTenMinutes()
+                    ->withinBounds($request->getBounds())
+                    ->with('tags')
+                    ->whereHas('latestStateHistory', function ($q) use ($date) {
+                        $q->where('last_seen', '<=', $date);
+                    })
+                    ->with(['latestStateHistory' => function ($q) use ($date) {
+                        $q->where('last_seen', '<=', $date);
+                    }])
+                    ->get();
+                break;
+            case 1:
+                $tagMap = $tags->first()->subTags->flatMap(fn ($t) => collect(Tag::getDescendantIds($t->id))
+                    ->push($t->id)
+                    ->mapWithKeys(fn ($id) => [$id => $t->id])
+                );
 
-        $stickers = Sticker::query()
-            ->olderThanTenMinutes()
-            ->with('tags')
-            ->withinBounds($request->getBounds())
-            ->whereHas('tags', function ($query) use ($allSubTags) {
-                $query->whereIn('tags.id', $allSubTags);
-            })
-            ->get();
+                $allSubTags = $tagMap->keys()->unique();
 
-        $stickers->each(function ($sticker) use ($tagMap) {
-            $sticker->count_tags = $sticker->tags
-                ->pluck('id')
-                ->map(fn ($id) => $tagMap->get($id))
-                ->filter()
-                ->unique()
-                ->values();
-        });
+                $stickers = Sticker::query()
+                    ->olderThanTenMinutes()
+                    ->withinBounds($request->getBounds())
+                    ->with('tags')
+                    ->whereHas('tags', function ($query) use ($allSubTags) {
+                        $query->whereIn('tags.id', $allSubTags);
+                    })
+                    ->get();
+
+                $stickers->each(function ($sticker) use ($tagMap) {
+                    $sticker->count_tags = $sticker->tags
+                        ->pluck('id')
+                        ->map(fn ($id) => $tagMap->get($id))
+                        ->filter()
+                        ->unique()
+                        ->values();
+                });
+                break;
+            default:
+                $tagMap = $tags
+                    ->mapWithKeys(fn ($tagId) => collect(Tag::getDescendantIds($tagId))
+                        ->push($tagId)
+                        ->mapWithKeys(fn ($id) => [$id => $tagId])
+                    );
+                $allSubTags = $tagMap->keys()->unique();
+
+                $stickers = Sticker::query()
+                    ->olderThanTenMinutes()
+                    ->with('tags')
+                    ->withinBounds($request->getBounds())
+                    ->whereHas('tags', function ($query) use ($allSubTags) {
+                        $query->whereIn('tags.id', $allSubTags);
+                    })
+                    ->get();
+
+                $stickers->each(function ($sticker) use ($tagMap) {
+                    $sticker->count_tags = $sticker->tags
+                        ->pluck('id')
+                        ->map(fn ($id) => $tagMap->get($id))
+                        ->filter()
+                        ->unique()
+                        ->values();
+                });
+        }
 
         return new ClusterCollection($this->clusteringService->clusterModels($stickers, $request->getClusteringConfig()))
             ->stickerInclusion($stickerInclusion);
