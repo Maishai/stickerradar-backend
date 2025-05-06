@@ -31,8 +31,9 @@ class ClusterShowMultipleRequest extends FormRequest
         return [
             // include or hide stickers. Dynamic mode includes them, if there are max 15 in total (not per cluster)
             'include_stickers' => ['nullable', Rule::enum(StickerInclusion::class)],
-            'tags' => ['required', 'array', new NoSuperTag],
-            'tags.*' => 'required|uuid|exists:tags,id',
+            'tags' => ['nullable', 'array', new NoSuperTag],
+            'tags.*' => 'uuid|exists:tags,id',
+            'date' => ['nullable', 'date'],
         ] + $this->getBoundsRules() + $this->getClusteringRules();
     }
 }
