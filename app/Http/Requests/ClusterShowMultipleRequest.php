@@ -2,11 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Tag;
 use App\Rules\NoSuperTag;
 use App\StickerInclusion;
 use App\Traits\WithBounds;
 use App\Traits\WithClustering;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 
 class ClusterShowMultipleRequest extends FormRequest
@@ -35,5 +37,17 @@ class ClusterShowMultipleRequest extends FormRequest
             'tags.*' => 'uuid|exists:tags,id',
             'date' => ['nullable', 'date'],
         ] + $this->getBoundsRules() + $this->getClusteringRules();
+    }
+
+    /**
+     * Get the tags as a Collection of Tag models.
+     *
+     * @return \Illuminate\Support\Collection|Tag[]
+     */
+    public function tags(): Collection
+    {
+        $ids = $this->input('tags', []);
+
+        return Tag::findMany($ids);
     }
 }
