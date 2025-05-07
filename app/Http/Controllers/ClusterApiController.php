@@ -82,128 +82,64 @@ class ClusterApiController extends Controller
      */
     public function showMultiple(ClusterShowMultipleRequest $request)
     {
-        $stickerInclusion = $request->enum('include_stickers', StickerInclusion::class) ?? StickerInclusion::DYNAMIC;
+        $stickerInclusion = $request->enum('include_stickers', StickerInclusion::class)
+            ?? StickerInclusion::DYNAMIC;
 
         $tags = $request->tags();
-        $date = $request->date('date') ?? now();
-        $stickers = null;
+        $bounds = $request->getBounds();
+        $dateFilter = $request->has('date') ? $request->date('date') : null;
 
-        switch ($tags->count()) {
-            case 0:
-                $stickers = Sticker::query()
-                    ->olderThanTenMinutes()
-                    ->withinBounds($request->getBounds())
-                    ->without('latestStateHistory')
-                    // only keep stickers with history <= $date
+        $query = Sticker::query()
+            ->olderThanTenMinutes()
+            ->withinBounds($bounds)
+            ->with('tags')
+            ->when($dateFilter, function ($q, $date) {
+                $q->without('latestStateHistory')
                     ->whereHas('stateHistory', fn ($q) => $q->where('last_seen', '<=', $date))
-                    ->with([
-                        'tags',
-                        'stateHistory' => fn ($q) => $q
-                            ->where('last_seen', '<=', $date)
-                            // ->orderByDesc('last_seen')
-                            // ->limit(1),
-                            // not sure if latest does what i think
-                            ->latest('last_seen'),
-                    ])
-                    ->get()
-                    // this is ugly, maybe do distinction instead in StickerResource
-                    ->map(function ($sticker) {
-                        $one = $sticker->stateHistory->first();
-                        $sticker->setRelation('latestStateHistory', $one);
-                        $sticker->unsetRelation('stateHistory');
+                    ->with(['stateHistory' => fn ($q) => $q
+                        ->where('last_seen', '<=', $date)
+                        ->latest('last_seen')
+                        ->limit(1),
+                    ]);
+            });
 
-                        return $sticker;
-                    });
-                break;
-            case 1:
-                $tagMap = $tags->first()->subTags->flatMap(fn ($t) => collect(Tag::getDescendantIds($t->id))
-                    ->push($t->id)
-                    ->mapWithKeys(fn ($id) => [$id => $t->id])
+        if ($tags->isNotEmpty()) {
+            if ($tags->count() === 1) {
+                // Single-tag: include its subTags
+                $tagMap = $tags->first()->subTags->flatMap(fn ($subTag) => collect(Tag::getDescendantIds($subTag->id))
+                    ->push($subTag->id)
+                    ->mapWithKeys(fn ($id) => [$id => $subTag->id])
                 );
+            } else {
+                // Multiple tags: include each tag and its descendants
+                $tagMap = $tags->flatMap(fn ($tag) => collect(Tag::getDescendantIds($tag->id))
+                    ->push($tag->id)
+                    ->mapWithKeys(fn ($id) => [$id => $tag->id])
+                );
+            }
 
-                $allSubTags = $tagMap->keys()->unique();
+            $allSubTagIds = $tagMap->keys()->unique();
 
-                $stickers = Sticker::query()
-                    ->olderThanTenMinutes()
-                    ->withinBounds($request->getBounds())
-                    ->without('latestStateHistory')
-                    ->with('tags')
-                    ->whereHas('tags', function ($query) use ($allSubTags) {
-                        $query->whereIn('tags.id', $allSubTags);
-                    })
-                    ->whereHas('stateHistory', fn ($q) => $q->where('last_seen', '<=', $date))
-                    ->with([
-                        'tags',
-                        'stateHistory' => fn ($q) => $q
-                            ->where('last_seen', '<=', $date)
-                            // ->orderByDesc('last_seen')
-                            // ->limit(1),
-                            // not sure if latest does what i think
-                            ->latest('last_seen'),
-                    ])
-                    ->get()
-                    // this is ugly, maybe do distinction instead in StickerResource
-                    ->map(function ($sticker) {
-                        $one = $sticker->stateHistory->first();
-                        $sticker->setRelation('latestStateHistory', $one);
-                        $sticker->unsetRelation('stateHistory');
+            $query->whereHas('tags', fn ($q) => $q->whereIn('tags.id', $allSubTagIds));
+        }
 
-                        return $sticker;
-                    });
+        $stickers = $query->get();
 
-                $stickers->each(function ($sticker) use ($tagMap) {
-                    $sticker->count_tags = $sticker->tags
-                        ->pluck('id')
-                        ->map(fn ($id) => $tagMap->get($id))
-                        ->filter()
-                        ->unique()
-                        ->values();
-                });
-                break;
-            default:
-                $tagMap = $tags
-                    ->pluck('id')
-                    ->mapWithKeys(fn ($tagId) => collect(Tag::getDescendantIds($tagId))
-                        ->push($tagId)
-                        ->mapWithKeys(fn ($id) => [$id => $tagId])
-                    );
-                $allSubTags = $tagMap->keys()->unique();
+        if ($tags->isNotEmpty()) {
+            $stickers->each(fn ($sticker) => $sticker->count_tags = $sticker->tags
+                ->pluck('id')
+                ->map(fn ($id) => $tagMap->get($id))
+                ->filter()
+                ->unique()
+                ->values()
+            );
+        }
 
-                $stickers = Sticker::query()
-                    ->olderThanTenMinutes()
-                    ->withinBounds($request->getBounds())
-                    ->without('latestStateHistory')
-                    ->whereHas('tags', function ($query) use ($allSubTags) {
-                        $query->whereIn('tags.id', $allSubTags);
-                    })
-                    ->whereHas('stateHistory', fn ($q) => $q->where('last_seen', '<=', $date))
-                    ->with([
-                        'tags',
-                        'stateHistory' => fn ($q) => $q
-                            ->where('last_seen', '<=', $date)
-                            // ->orderByDesc('last_seen')
-                            // ->limit(1),
-                            // not sure if latest does what i think
-                            ->latest('last_seen'),
-                    ])
-                    ->get()
-                    // this is ugly, maybe do distinction instead in StickerResource
-                    ->map(function ($sticker) {
-                        $one = $sticker->stateHistory->first();
-                        $sticker->setRelation('latestStateHistory', $one);
-                        $sticker->unsetRelation('stateHistory');
-
-                        return $sticker;
-                    });
-
-                $stickers->each(function ($sticker) use ($tagMap) {
-                    $sticker->count_tags = $sticker->tags
-                        ->pluck('id')
-                        ->map(fn ($id) => $tagMap->get($id))
-                        ->filter()
-                        ->unique()
-                        ->values();
-                });
+        if ($dateFilter) {
+            $stickers->each(fn ($sticker) => $sticker
+                ->setRelation('latestStateHistory', $sticker->stateHistory->first())
+                ->unsetRelation('stateHistory')
+            );
         }
 
         return new ClusterCollection($this->clusteringService->clusterModels($stickers, $request->getClusteringConfig()))
