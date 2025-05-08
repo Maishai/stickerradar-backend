@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Tag;
 use App\Rules\NoSuperTag;
+use App\State;
 use App\StickerInclusion;
 use App\Traits\WithBounds;
 use App\Traits\WithClustering;
@@ -36,18 +37,27 @@ class ClusterShowMultipleRequest extends FormRequest
             'tags' => ['nullable', 'array', new NoSuperTag],
             'tags.*' => 'uuid|exists:tags,id',
             'date' => ['nullable', 'date'],
+            'states' => ['nullable', 'array'],
+            'states.*' => [Rule::enum(State::class)],
         ] + $this->getBoundsRules() + $this->getClusteringRules();
     }
 
     /**
      * Get the tags as a Collection of Tag models.
-     *
-     * @return \Illuminate\Support\Collection|Tag[]
      */
     public function tags(): Collection
     {
         $ids = $this->input('tags', []);
 
         return Tag::findMany($ids);
+    }
+
+    /**
+     * Get the states as a Collection of State enums.
+     */
+    public function states(): Collection
+    {
+        return ($this->collect('states') ?? collect())
+            ->map(fn ($state) => State::from($state));
     }
 }

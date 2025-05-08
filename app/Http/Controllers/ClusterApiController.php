@@ -95,13 +95,17 @@ class ClusterApiController extends Controller
             ->with('tags')
             ->when($dateFilter, function ($q, $date) {
                 $q->without('latestStateHistory')
-                    ->whereHas('stateHistory', fn ($q) => $q->where('last_seen', '<=', $date))
-                    ->with(['stateHistory' => fn ($q) => $q
-                        ->where('last_seen', '<=', $date)
-                        ->latest('last_seen')
-                        ->limit(1),
-                    ]);
-            });
+                    ->whereHas('stateHistory', fn ($q) => $q->where('last_seen', '<=', $date));
+            })
+            ->with(['stateHistory' => function ($q) use ($dateFilter, $request) {
+                if ($dateFilter) {
+                    $q->where('last_seen', '<=', $dateFilter);
+                }
+                if ($request->states()->isNotEmpty()) {
+                    $q->whereIn('state', $request->states());
+                }
+                $q->latest('last_seen')->limit(1);
+            }]);
 
         if ($tags->isNotEmpty()) {
             if ($tags->count() === 1) {

@@ -1162,4 +1162,166 @@ class ClusterApiControllerTest extends TestCase
                 ->has('data.0.stickers', 0)
             );
     }
+
+    public function test_filter_by_states_should_show_sticker()
+    {
+        $tag = Tag::factory()->create();
+
+        $sticker = Sticker::factory(['lat' => 16, 'lon' => 16])->create();
+        $sticker->tags()->sync([$tag->id]);
+
+        $history1 = $sticker->stateHistory()->create([
+            'last_seen' => now(),
+            'state' => State::EXISTS,
+        ]);
+
+        $this->travel(10)->minutes();
+
+        $response = $this->postJson(route('api.stickers.clusters.showMultiple'), [
+            'min_lat' => 15,
+            'max_lat' => 25,
+            'min_lon' => 15,
+            'max_lon' => 25,
+            'states' => [State::EXISTS],
+        ]);
+
+        $response->assertOk()
+            ->assertJson([
+                'data' => [
+                    [
+                        'centroid' => [
+                            'lat' => 16,
+                            'lon' => 16,
+                        ],
+                        'tag_counts' => [
+                            $tag->id => 1,
+                        ],
+                        'count' => 1,
+                    ],
+                ],
+            ]);
+    }
+
+    public function test_filter_by_states_shouldnt_show_sticker()
+    {
+        $tag = Tag::factory()->create();
+
+        $sticker = Sticker::factory(['lat' => 16, 'lon' => 16])->create();
+        $sticker->tags()->sync([$tag->id]);
+
+        $history1 = $sticker->stateHistory()->create([
+            'last_seen' => now(),
+            'state' => State::REMOVED,
+        ]);
+
+        $this->travel(10)->minutes();
+
+        $response = $this->postJson(route('api.stickers.clusters.showMultiple'), [
+            'min_lat' => 15,
+            'max_lat' => 25,
+            'min_lon' => 15,
+            'max_lon' => 25,
+            'states' => [State::EXISTS],
+        ]);
+
+        $response->assertOk()
+            ->assertJson([
+                'data' => [],
+            ]);
+    }
+
+
+    public function test_filter_by_multiple_states_should_show_multiple_stickers()
+    {
+        $tag = Tag::factory()->create();
+
+        $sticker = Sticker::factory(['lat' => 16, 'lon' => 16])->create();
+        $sticker->tags()->sync([$tag->id]);
+
+        $history1 = $sticker->stateHistory()->create([
+            'last_seen' => now(),
+            'state' => State::EXISTS,
+        ]);
+
+        $sticker2 = Sticker::factory(['lat' => 16, 'lon' => 16])->create();
+        $sticker2->tags()->sync([$tag->id]);
+
+        $history2 = $sticker->stateHistory()->create([
+            'last_seen' => now(),
+            'state' => State::PARTIALLY_REMOVED,
+        ]);
+
+        $this->travel(10)->minutes();
+
+        $response = $this->postJson(route('api.stickers.clusters.showMultiple'), [
+            'min_lat' => 15,
+            'max_lat' => 25,
+            'min_lon' => 15,
+            'max_lon' => 25,
+            'states' => [State::EXISTS, State::PARTIALLY_REMOVED],
+        ]);
+
+        $response->assertOk()
+            ->assertJson([
+                'data' => [
+                    [
+                        'centroid' => [
+                            'lat' => 16,
+                            'lon' => 16,
+                        ],
+                        'tag_counts' => [
+                            $tag->id => 2,
+                        ],
+                        'count' => 2,
+                    ],
+                ],
+            ]);
+    }
+
+    public function test_filter_by_empty_states_should_show_all_stickers()
+    {
+        $tag = Tag::factory()->create();
+
+        $sticker = Sticker::factory(['lat' => 16, 'lon' => 16])->create();
+        $sticker->tags()->sync([$tag->id]);
+
+        $history1 = $sticker->stateHistory()->create([
+            'last_seen' => now(),
+            'state' => State::EXISTS,
+        ]);
+
+        $sticker2 = Sticker::factory(['lat' => 16, 'lon' => 16])->create();
+        $sticker2->tags()->sync([$tag->id]);
+
+        $history2 = $sticker->stateHistory()->create([
+            'last_seen' => now(),
+            'state' => State::PARTIALLY_REMOVED,
+        ]);
+
+        $this->travel(10)->minutes();
+
+        $response = $this->postJson(route('api.stickers.clusters.showMultiple'), [
+            'min_lat' => 15,
+            'max_lat' => 25,
+            'min_lon' => 15,
+            'max_lon' => 25,
+            'states' => [],
+        ]);
+
+        $response->assertOk()
+            ->assertJson([
+                'data' => [
+                    [
+                        'centroid' => [
+                            'lat' => 16,
+                            'lon' => 16,
+                        ],
+                        'tag_counts' => [
+                            $tag->id => 2,
+                        ],
+                        'count' => 2,
+                    ],
+                ],
+            ]);
+    }
 }
