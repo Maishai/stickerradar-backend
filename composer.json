@@ -93,7 +93,7 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/SergeyKuzmenko/laravel-marker-clusterer"
+            "url": "https://github.com/404Simon/laravel-marker-clusterer"
         }
     ]
 }
