@@ -33,20 +33,29 @@ class ClusterApiController extends Controller
         $query = Sticker::query()
             ->olderThanTenMinutes()
             ->withinBounds($bounds)
-            ->with('tags')
-            ->when($dateFilter, function ($q, $date) {
-                $q->without('latestStateHistory')
-                    ->whereHas('stateHistory', fn ($q) => $q->where('last_seen', '<=', $date));
-            })
-            ->with(['stateHistory' => function ($q) use ($dateFilter, $states) {
-                if ($dateFilter) {
-                    $q->where('last_seen', '<=', $dateFilter);
-                }
-                if ($states->isNotEmpty()) {
-                    $q->whereIn('state', $states);
-                }
-                $q->latest('last_seen')->limit(1);
-            }]);
+            ->with('tags');
+
+        if ($states->isNotEmpty() || $dateFilter !== null) {
+
+            $query->without('latestStateHistory')
+                ->whereHas('stateHistory', function ($q) use ($dateFilter, $states) {
+                    if ($dateFilter) {
+                        $q->where('last_seen', '<=', $dateFilter);
+                    }
+                    if ($states->isNotEmpty()) {
+                        $q->whereIn('state', $states);
+                    }
+                })
+                ->with(['stateHistory' => function ($q) use ($dateFilter, $states) {
+                    if ($dateFilter) {
+                        $q->where('last_seen', '<=', $dateFilter);
+                    }
+                    if ($states->isNotEmpty()) {
+                        $q->whereIn('state', $states);
+                    }
+                    $q->latest('last_seen')->limit(1);
+                }]);
+        }
 
         if ($tags->isNotEmpty()) {
             if ($tags->count() === 1) {
@@ -80,7 +89,7 @@ class ClusterApiController extends Controller
             );
         }
 
-        if ($dateFilter) {
+        if ($dateFilter !== null || $states->isNotEmpty()) {
             $stickers->each(fn ($sticker) => $sticker
                 ->setRelation('latestStateHistory', $sticker->stateHistory->first())
                 ->unsetRelation('stateHistory')

@@ -1380,6 +1380,56 @@ class ClusterApiControllerTest extends TestCase
             ]);
     }
 
+
+    public function test_filter_by_states_and_date_should_show_sticker()
+    {
+        $tag = Tag::factory()->create();
+
+        $sticker = Sticker::factory(['lat' => 16, 'lon' => 16])->create();
+        $sticker->tags()->sync([$tag->id]);
+
+        $history1 = $sticker->stateHistory()->create([
+            'last_seen' => now(),
+            'state' => State::EXISTS,
+        ]);
+
+        $this->travel(10)->minutes();
+
+        $date = now();
+
+        $this->travel(10)->minutes();
+
+        $sticker->stateHistory()->create([
+            'last_seen' => now(),
+            'state' => State::REMOVED,
+        ]);
+
+        $response = $this->postJson(route('api.stickers.cluster'), [
+            'min_lat' => 15,
+            'max_lat' => 25,
+            'min_lon' => 15,
+            'max_lon' => 25,
+            'states' => [State::EXISTS],
+            'date' => $date,
+        ]);
+
+        $response->assertOk()
+            ->assertJson([
+                'data' => [
+                    [
+                        'centroid' => [
+                            'lat' => 16,
+                            'lon' => 16,
+                        ],
+                        'tag_counts' => [
+                            $tag->id => 1,
+                        ],
+                        'count' => 1,
+                    ],
+                ],
+            ]);
+    }
+
     public function test_filter_by_states_shouldnt_show_sticker()
     {
         $tag = Tag::factory()->create();
@@ -1423,7 +1473,7 @@ class ClusterApiControllerTest extends TestCase
         $sticker2 = Sticker::factory(['lat' => 16, 'lon' => 16])->create();
         $sticker2->tags()->sync([$tag->id]);
 
-        $history2 = $sticker->stateHistory()->create([
+        $history2 = $sticker2->stateHistory()->create([
             'last_seen' => now(),
             'state' => State::PARTIALLY_REMOVED,
         ]);
