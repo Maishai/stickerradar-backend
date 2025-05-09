@@ -362,8 +362,8 @@ class ClusterApiControllerTest extends TestCase
                     ],
                     [
                         'centroid' => [
-                            'lat' => 20.0000000333333,
-                            'lon' => 20.0000000333333,
+                            'lat' => 20.000000033333333,
+                            'lon' => 20.000000033333333,
                         ],
                         'tag_counts' => [
                             $rechts->id => 3,
@@ -389,8 +389,8 @@ class ClusterApiControllerTest extends TestCase
                     ],
                     [
                         'centroid' => [
-                            'lat' => 24.0000000428571,
-                            'lon' => 24.0000000428571,
+                            'lat' => 24.000000042857142,
+                            'lon' => 24.000000042857142,
                         ],
                         'tag_counts' => [
                             $links->id => 4,
@@ -712,8 +712,8 @@ class ClusterApiControllerTest extends TestCase
                     ],
                     [
                         'centroid' => [
-                            'lat' => 20.0000000333333,
-                            'lon' => 20.0000000333333,
+                            'lat' => 20.000000033333333,
+                            'lon' => 20.000000033333333,
                         ],
                         'tag_counts' => [
                             $rechts->id => 3,
@@ -739,8 +739,8 @@ class ClusterApiControllerTest extends TestCase
                     ],
                     [
                         'centroid' => [
-                            'lat' => 24.0000000428571,
-                            'lon' => 24.0000000428571,
+                            'lat' => 24.000000042857142,
+                            'lon' => 24.000000042857142,
                         ],
                         'tag_counts' => [
                             $links->id => 4,
@@ -1129,8 +1129,8 @@ class ClusterApiControllerTest extends TestCase
                     ],
                     [
                         'centroid' => [
-                            'lat' => 20.0000000333333,
-                            'lon' => 20.0000000333333,
+                            'lat' => 20.000000033333333,
+                            'lon' => 20.000000033333333,
                         ],
                         'tag_counts' => [
                             $rechts->id => 3,
@@ -1156,8 +1156,8 @@ class ClusterApiControllerTest extends TestCase
                     ],
                     [
                         'centroid' => [
-                            'lat' => 24.0000000428571,
-                            'lon' => 24.0000000428571,
+                            'lat' => 24.000000042857142,
+                            'lon' => 24.000000042857142,
                         ],
                         'tag_counts' => [
                             $links->id => 4,

@@ -2,11 +2,10 @@
 
 namespace App\Services;
 
-use App\ClusterPoint;
-use EmilKlindt\MarkerClusterer\Facades\DefaultClusterer;
 use EmilKlindt\MarkerClusterer\Interfaces\Clusterable;
 use EmilKlindt\MarkerClusterer\Models\Config;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Process;
 
 class ClusteringService
 {
@@ -19,23 +18,41 @@ class ClusteringService
      */
     public function clusterModels(Collection $models, Config $config): Collection
     {
-        $points = $models->map(function (Clusterable $model) {
+        $input = $models->map(function ($model) {
             $coord = $model->getClusterableCoordinate();
 
-            return new ClusterPoint($model->id, $coord->getLatitude(), $coord->getLongitude());
-        });
+            return json_encode([
+                'id' => (string) $model->id,
+                'lat' => (float) $coord->getLatitude(),
+                'lon' => (float) $coord->getLongitude(),
+            ]);
+        })->implode("\n");
 
-        $lookupModels = $models->keyBy('id');
+        $epsilon = $config->epsilon / 5000;
+        $result = Process::input($input)->run(base_path('dbscan-cli').' --eps='.$epsilon.' --minPts='.$config->minSamples);
 
-        $clusters = DefaultClusterer::cluster($points, $config);
+        if (! $result->successful()) {
+            throw new \RuntimeException('DBSCAN process failed: '.$result->errorOutput()."\ninput:\n".$input);
+        }
 
-        $clusters->each(function ($cluster) use ($lookupModels) {
-            $cluster->markers = $cluster->markers
-                ->map(fn ($point) => $lookupModels[$point->id])
+        $clustersData = json_decode($result->output(), true);
+
+        // Map back to original models
+        return collect($clustersData)->map(function (array $cluster) use ($models) {
+            $markers = collect($cluster['ids'])
+                ->map(fn ($id) => $models->firstWhere('id', $id))
                 ->filter()
                 ->values();
-        });
 
-        return $clusters;
+            return (object) [
+                'centroid' => [
+                    /** @var float */
+                    'lat' => $cluster['centroid_lat'],
+                    /** @var float */
+                    'lon' => $cluster['centroid_lon'],
+                ],
+                'markers' => $markers,
+            ];
+        });
     }
 }

@@ -49,9 +49,9 @@ class ClusterResource extends JsonResource
         return [
             'centroid' => [
                 /** @var float */
-                'lat' => (float) $this->centroid->getLatitude(),
+                'lat' => (float) $this->centroid['lat'],
                 /** @var float */
-                'lon' => (float) $this->centroid->getLongitude(),
+                'lon' => (float) $this->centroid['lon'],
             ],
             /** @var array<string, int> */
             'tag_counts' => $tagCounts,
