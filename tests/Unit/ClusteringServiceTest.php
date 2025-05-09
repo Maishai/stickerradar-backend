@@ -59,25 +59,25 @@ class ClusteringServiceTest extends TestCase
     //     $this->assertSame('2', $cluster->markers[1]->id);
     // }
     //
-    // #[Test]
-    // public function empty_stickers_collection_returns_empty_clusters()
-    // {
-    //     $models = collect();
-    //
-    //     DefaultClusterer::shouldReceive('cluster')
-    //         ->once()
-    //         ->withArgs(fn (Collection $points, $config) => $points->isEmpty())
-    //         ->andReturn(collect());
-    //
-    //     $service = new ClusteringService;
-    //     $clusters = $service->clusterModels($models, new Config(['epsilon' => 12.0, 'minSamples' => 1]));
-    //
-    //     $this->assertTrue($clusters->isEmpty());
-    // }
-    //
-    // protected function tearDown(): void
-    // {
-    //     Mockery::close();
-    //     parent::tearDown();
-    // }
+    #[Test]
+    public function empty_stickers_collection_returns_empty_clusters()
+    {
+        $models = collect();
+
+        // DefaultClusterer::shouldReceive('cluster')
+        //     ->once()
+        //     ->withArgs(fn (Collection $points, $config) => $points->isEmpty())
+        //     ->andReturn(collect());
+
+        $service = new ClusteringService;
+        $clusters = $service->clusterModels($models, new Config(['epsilon' => 12.0, 'minSamples' => 1]));
+
+        $this->assertTrue($clusters->isEmpty());
+    }
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
+    }
 }
