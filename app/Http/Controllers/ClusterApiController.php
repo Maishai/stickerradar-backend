@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ClusterShowMultipleRequest;
+use App\Http\Requests\ClusterRequest;
 use App\Http\Resources\ClusterCollection;
 use App\Models\Sticker;
 use App\Models\Tag;
@@ -20,7 +20,7 @@ class ClusterApiController extends Controller
      *
      * @response AnonymousResourceCollection<ClusterResource>
      */
-    public function cluster(ClusterShowMultipleRequest $request)
+    public function cluster(ClusterRequest $request)
     {
         $stickerInclusion = $request->enum('include_stickers', StickerInclusion::class)
             ?? StickerInclusion::DYNAMIC;
@@ -28,6 +28,7 @@ class ClusterApiController extends Controller
         $tags = $request->tags();
         $bounds = $request->getBounds();
         $dateFilter = $request->has('date') ? $request->date('date') : null;
+        $states = $request->states();
 
         $query = Sticker::query()
             ->olderThanTenMinutes()
@@ -37,12 +38,12 @@ class ClusterApiController extends Controller
                 $q->without('latestStateHistory')
                     ->whereHas('stateHistory', fn ($q) => $q->where('last_seen', '<=', $date));
             })
-            ->with(['stateHistory' => function ($q) use ($dateFilter, $request) {
+            ->with(['stateHistory' => function ($q) use ($dateFilter, $states) {
                 if ($dateFilter) {
                     $q->where('last_seen', '<=', $dateFilter);
                 }
-                if ($request->states()->isNotEmpty()) {
-                    $q->whereIn('state', $request->states());
+                if ($states->isNotEmpty()) {
+                    $q->whereIn('state', $states);
                 }
                 $q->latest('last_seen')->limit(1);
             }]);

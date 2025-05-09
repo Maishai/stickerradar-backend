@@ -12,7 +12,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 
-class ClusterShowMultipleRequest extends FormRequest
+class ClusterRequest extends FormRequest
 {
     use WithBounds, WithClustering;
 
