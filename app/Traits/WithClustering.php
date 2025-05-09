@@ -15,7 +15,7 @@ trait WithClustering
     {
         return [
             // determins how close stickers need to be together to be considered as neighbours
-            'epsilon' => 'nullable|numeric|min:0.1|max:100',
+            'epsilon' => 'nullable|numeric|min:0.1|max:1000',
             /** @var int */
             'min_samples' => 'nullable|integer|min:1|max:100',
         ];
