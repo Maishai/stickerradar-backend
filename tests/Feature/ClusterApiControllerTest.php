@@ -1247,7 +1247,7 @@ class ClusterApiControllerTest extends TestCase
 
     public function test_too_much_stickers_shouldnt_include_stickers_on_dynamic_mode()
     {
-        $linker_sticker = Sticker::factory(['lat' => 16, 'lon' => 16])->count(16)->create();
+        $linker_sticker = Sticker::factory(['lat' => 16, 'lon' => 16])->count(26)->create();
 
         $this->travel(10)->minutes();
 
@@ -1262,7 +1262,7 @@ class ClusterApiControllerTest extends TestCase
         $response
             ->assertOk()
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.count', 16)
+            ->assertJsonPath('data.0.count', 26)
             ->assertJson(fn (AssertableJson $json) => $json
                 ->whereType('data.0.stickers', 'array')
                 ->has('data.0.stickers', 0)
@@ -1379,7 +1379,6 @@ class ClusterApiControllerTest extends TestCase
                 ],
             ]);
     }
-
 
     public function test_filter_by_states_and_date_should_show_sticker()
     {

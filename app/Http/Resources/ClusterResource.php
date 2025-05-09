@@ -18,7 +18,7 @@ class ClusterResource extends JsonResource
         $this->includeStickers = match ($stickerInclusion) {
             StickerInclusion::INCLUDE => true,
             StickerInclusion::HIDE => false,
-            StickerInclusion::DYNAMIC => $this->markers->count() <= 15,
+            StickerInclusion::DYNAMIC => $this->markers->count() <= 25,
         };
 
         return $this;
