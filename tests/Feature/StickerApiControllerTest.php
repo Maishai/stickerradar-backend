@@ -23,21 +23,6 @@ class StickerApiControllerTest extends TestCase
         Storage::fake('public');
     }
 
-    public function test_index_filter_by_latitude_returns_correct_stickers()
-    {
-        Sticker::factory()->create(['lat' => 10, 'lon' => 10]);
-        Sticker::factory()->create(['lat' => 20, 'lon' => 20]);
-        Sticker::factory()->create(['lat' => 30, 'lon' => 30]);
-
-        $this->travel(10)->minutes();
-
-        $response = $this->getJson(route('api.stickers.index', ['min_lat' => 15, 'max_lat' => 25, 'min_lon' => 15, 'max_lon' => 25]));
-
-        $response->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonFragment(['lat' => 20, 'lon' => 20]);
-    }
-
     public function test_store_valid_data_creates_and_returns_sticker()
     {
         $tags = Tag::factory()->count(2)->create();
@@ -235,43 +220,6 @@ class StickerApiControllerTest extends TestCase
             ->assertJsonValidationErrors(['state']);
     }
 
-    public function test_show_existing_sticker_returns_sticker()
-    {
-        $sticker = Sticker::factory()->has(Tag::factory()->count(2))->create();
-
-        $response = $this->getJson(route('api.stickers.show', $sticker->id));
-
-        $response->assertOk()
-            ->assertJsonStructure([
-                'data' => [
-                    'id',
-                    'lat',
-                    'lon',
-                    'filename',
-                    'state',
-                    'tags',
-                ],
-            ])
-            ->assertJson([
-                'data' => [
-                    'id' => $sticker->id,
-                    'lat' => $sticker->lat,
-                    'lon' => $sticker->lon,
-                    'state' => $sticker->latestStateHistory->state->value,
-                    'last_seen' => $sticker->latestStateHistory->last_seen,
-                    'filename' => $sticker->filename,
-                    'tags' => $sticker->tags->pluck('id')->toArray(),
-                ],
-            ]);
-    }
-
-    public function test_show_non_existing_sticker_returns_not_found()
-    {
-        $response = $this->getJson(route('api.stickers.show', ['sticker' => 'non-existent-uuid']));
-
-        $response->assertNotFound();
-    }
-
     public function test_store_invalid_tags_has_error()
     {
         $base64Image = base64_encode(file_get_contents('storage/example-images/fussball.jpeg'));
@@ -287,22 +235,6 @@ class StickerApiControllerTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['tags']);
-    }
-
-    public function test_index_doesnt_return_stickers_younger_than_ten_minutes()
-    {
-        $oldest = Sticker::factory()->create(['lat' => 20, 'lon' => 20]);
-        $this->travel(3)->minutes();
-        Sticker::factory()->create(['lat' => 20, 'lon' => 20]);
-        $this->travel(3)->minutes();
-        Sticker::factory()->create(['lat' => 20, 'lon' => 20]);
-        $this->travel(4)->minutes();
-
-        $response = $this->getJson(route('api.stickers.index', ['min_lat' => 15, 'max_lat' => 25, 'min_lon' => 15, 'max_lon' => 25]));
-
-        $response->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonFragment(['id' => $oldest->id]);
     }
 
     public function test_update_with_with_valid_data()

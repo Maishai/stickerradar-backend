@@ -2,46 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Dtos\Bounds;
 use App\Http\Resources\StateHistoryResource;
-use App\Models\StateHistory;
 use App\Models\Sticker;
-use App\Rules\MaxTileSize;
 use App\State;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class HistoryApiController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
-    {
-        $request->validate([
-            /** @var float */
-            'min_lat' => ['required', 'numeric', 'between:-90,90', new MaxTileSize(100)],
-            'max_lat' => ['required', 'numeric', 'between:-90,90'],
-            'min_lon' => ['required', 'numeric', 'between:-180,180'],
-            'max_lon' => ['required', 'numeric', 'between:-180,180'],
-            'date' => ['nullable', 'date'],
-        ]);
-
-        $date = $request->date('date') ?? now();
-
-        $histories = StateHistory::query()
-            ->whereHas('sticker', function ($q) use ($request) {
-                $q->olderThanTenMinutes()
-                    ->withinBounds(Bounds::fromRequest($request));
-            })
-            ->where('last_seen', '<=', $date)
-            ->orderBy('sticker_id')
-            ->latest('last_seen')
-            ->get();
-
-        return StateHistoryResource::collection($histories);
-    }
-
     /**
      * Display the specified resource.
      */
