@@ -36,11 +36,12 @@ class ClusteringService
         }
 
         $clustersData = json_decode($result->output(), true);
+        $modelLookup = $models->keyBy('id');
 
         // Map back to original models
-        return collect($clustersData)->map(function (array $cluster) use ($models) {
+        return collect($clustersData)->map(function (array $cluster) use ($modelLookup) {
             $markers = collect($cluster['ids'])
-                ->map(fn ($id) => $models->firstWhere('id', $id))
+                ->map(fn ($id) => $modelLookup[$id])
                 ->filter()
                 ->values();
 
