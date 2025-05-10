@@ -28,8 +28,10 @@ class ClusteringService
             ]);
         })->implode("\n");
 
+        $exe = php_uname('m') === 'arm64' ? 'arm64-dbscan-cli' : 'dbscan-cli';
+
         $epsilon = $config->epsilon / 5000;
-        $result = Process::input($input)->run(base_path('dbscan-cli').' --eps='.$epsilon.' --minPts='.$config->minSamples);
+        $result = Process::input($input)->run(base_path($exe).' --eps='.$epsilon.' --minPts='.$config->minSamples);
 
         if (! $result->successful()) {
             throw new \RuntimeException('DBSCAN process failed: '.$result->errorOutput()."\ninput:\n".$input);
