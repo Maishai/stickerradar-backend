@@ -2,8 +2,6 @@
 
 namespace App\Traits;
 
-use EmilKlindt\MarkerClusterer\Models\Config;
-
 trait WithClustering
 {
     /**
@@ -21,11 +19,11 @@ trait WithClustering
         ];
     }
 
-    public function getClusteringConfig(): Config
+    public function getClusteringConfig(): array
     {
-        return new Config([
+        return [
             'epsilon' => $this->float('epsilon', 5),
             'minSamples' => $this->integer('min_samples', 1),
-        ]);
+        ];
     }
 }

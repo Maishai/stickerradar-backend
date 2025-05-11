@@ -11,7 +11,6 @@
     "require": {
         "php": "^8.2",
         "dedoc/scramble": "^0.12.17",
-        "emilklindt/laravel-marker-clusterer": "dev-main",
         "intervention/image-laravel": "^1.5",
         "laravel/framework": "^12.0",
         "laravel/octane": "^2.8",
@@ -89,11 +88,5 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true,
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/404Simon/laravel-marker-clusterer"
-        }
-    ]
+    "prefer-stable": true
 }

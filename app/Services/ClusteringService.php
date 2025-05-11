@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use EmilKlindt\MarkerClusterer\Interfaces\Clusterable;
-use EmilKlindt\MarkerClusterer\Models\Config;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Process;
 
@@ -16,22 +14,20 @@ class ClusteringService
      * @param  Config  $config  Clustering configuration object
      * @return Collection Collection of clusters with ->markers as full models
      */
-    public function clusterModels(Collection $models, Config $config): Collection
+    public function clusterModels(Collection $models, array $config): Collection
     {
         $input = $models->map(function ($model) {
-            $coord = $model->getClusterableCoordinate();
-
             return json_encode([
                 'id' => (string) $model->id,
-                'lat' => (float) $coord->getLatitude(),
-                'lon' => (float) $coord->getLongitude(),
+                'lat' => (float) $model->lat,
+                'lon' => (float) $model->lon,
             ]);
         })->implode("\n");
 
         $exe = php_uname('m') === 'arm64' ? 'arm64-dbscan-cli' : 'dbscan-cli';
 
-        $epsilon = $config->epsilon / 5000;
-        $result = Process::input($input)->run(base_path($exe).' --eps='.$epsilon.' --minPts='.$config->minSamples);
+        $epsilon = $config['epsilon'] / 5000;
+        $result = Process::input($input)->run(base_path($exe).' --eps='.$epsilon.' --minPts='.$config['minSamples']);
 
         if (! $result->successful()) {
             throw new \RuntimeException('DBSCAN process failed: '.$result->errorOutput()."\ninput:\n".$input);

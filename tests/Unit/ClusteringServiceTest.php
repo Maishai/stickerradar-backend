@@ -5,9 +5,6 @@ namespace Tests\Unit;
 use App\ClusterPoint;
 use App\Models\Sticker;
 use App\Services\ClusteringService;
-use EmilKlindt\MarkerClusterer\Facades\DefaultClusterer;
-use EmilKlindt\MarkerClusterer\Models\Cluster;
-use EmilKlindt\MarkerClusterer\Models\Config;
 use Illuminate\Support\Collection;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
@@ -70,7 +67,7 @@ class ClusteringServiceTest extends TestCase
         //     ->andReturn(collect());
 
         $service = new ClusteringService;
-        $clusters = $service->clusterModels($models, new Config(['epsilon' => 12.0, 'minSamples' => 1]));
+        $clusters = $service->clusterModels($models, ['epsilon' => 12.0, 'minSamples' => 1]);
 
         $this->assertTrue($clusters->isEmpty());
     }

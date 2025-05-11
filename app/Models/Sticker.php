@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Dtos\Bounds;
 use App\State;
-use EmilKlindt\MarkerClusterer\Interfaces\Clusterable;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -13,9 +12,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use League\Geotools\Coordinate\Coordinate;
 
-class Sticker extends Model implements Clusterable
+class Sticker extends Model
 {
     use HasFactory;
     use HasUlids;
@@ -37,14 +35,6 @@ class Sticker extends Model implements Clusterable
     public function latestStateHistory(): HasOne
     {
         return $this->hasOne(StateHistory::class)->latestOfMany('last_seen');
-    }
-
-    public function getClusterableCoordinate(): Coordinate
-    {
-        return new Coordinate([
-            $this->lat,
-            $this->lon,
-        ]);
     }
 
     #[Scope]
