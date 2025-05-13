@@ -35,9 +35,7 @@ class StickerService
             'filename' => $filename,
         ]);
 
-        foreach ($tagIds as $tagId) {
-            $sticker->tags()->attach($tagId);
-        }
+        $sticker->tags()->sync($tagIds);
 
         $sticker->stateHistory()->create([
             'state' => $state,
