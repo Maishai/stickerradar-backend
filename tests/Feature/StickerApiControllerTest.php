@@ -334,4 +334,66 @@ class StickerApiControllerTest extends TestCase
             'tag_id' => $uncertainTag->id,
         ]);
     }
+
+    public function test_show_existing_sticker_returns_sticker()
+    {
+
+        $sticker = Sticker::factory()->has(Tag::factory()->count(2))->create();
+
+        $response = $this->getJson(route('api.stickers.show', $sticker->id));
+
+        $response->assertOk()
+
+            ->assertJsonStructure([
+
+                'data' => [
+
+                    'id',
+
+                    'lat',
+
+                    'lon',
+
+                    'filename',
+
+                    'state',
+
+                    'tags',
+
+                ],
+
+            ])
+
+            ->assertJson([
+
+                'data' => [
+
+                    'id' => $sticker->id,
+
+                    'lat' => $sticker->lat,
+
+                    'lon' => $sticker->lon,
+
+                    'state' => $sticker->latestStateHistory->state->value,
+
+                    'last_seen' => $sticker->latestStateHistory->last_seen,
+
+                    'filename' => $sticker->filename,
+
+                    'tags' => $sticker->tags->pluck('id')->toArray(),
+
+                ],
+
+            ]);
+
+    }
+
+    public function test_show_non_existing_sticker_returns_not_found()
+    {
+
+        $response = $this->getJson(route('api.stickers.show', ['sticker' => 'non-existent-uuid']));
+
+        $response->assertNotFound();
+
+    }
 }

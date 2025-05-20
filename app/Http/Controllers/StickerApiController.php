@@ -68,6 +68,14 @@ class StickerApiController extends Controller
     }
 
     /**
+     * Get a specific sticker.
+     **/
+    public function show($uuid)
+    {
+        return new StickerResource(Sticker::query()->with('tags')->findOrFail($uuid));
+    }
+
+    /**
      * Update tags of a sticker
      *
      * Just overwrite all tags of a sticker. Not sure if this is a good idea. Highly ratelimited.
