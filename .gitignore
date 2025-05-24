@@ -23,3 +23,4 @@ yarn-error.log
 /.zed
 /caddy
 laradumps.yaml
+public/app
