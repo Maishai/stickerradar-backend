@@ -10,16 +10,11 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::redirect('/', url('app'));
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
-
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
     Route::redirect('settings', 'settings/profile');
+    Route::view('', 'dashboard')->name('dashboard');
     Route::get('tags', TagsComponent::class)->name('tags.index');
     Route::get('tags/{tag}', EditTag::class)->name('tags.edit');
     Route::get('stickers', StickerPreview::class)->name('stickers.index');
@@ -31,7 +26,12 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 });
 
-Route::get('/app/{any?}', function ($any = null) {
+Route::name('app')->get('/app/{any?}', function ($any = null) {
+    abort_unless(
+        File::exists(public_path('app/index.html')),
+        503,
+        'SPA entry point not found. Have you run your front‐end build? (php artisan frontend:build)'
+    );
     $html = File::get(public_path('app/index.html'));
 
     try {
