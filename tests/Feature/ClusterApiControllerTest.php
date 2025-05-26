@@ -181,6 +181,56 @@ class ClusterApiControllerTest extends TestCase
             ], );
     }
 
+    public function test_show_multiple_with_one_tag_without_subtags_and_no_date_simple_test()
+    {
+        $politik = Tag::factory()->create();
+
+        $linker_sticker = Sticker::factory(['lat' => 16, 'lon' => 16])->create();
+        $linker_sticker->tags()->sync([$politik->id]);
+        $history_linker_sticker = StateHistory::factory()->create([
+            'sticker_id' => $linker_sticker->id,
+            'last_seen' => now(),
+            'state' => State::PARTIALLY_REMOVED,
+        ]);
+
+        $this->travel(10)->minutes();
+
+        $response = $this->postJson(route('api.stickers.cluster', [
+            'min_lat' => 15, 'max_lat' => 25, 'min_lon' => 15, 'max_lon' => 25, 'tags' => [$politik->id],
+        ]));
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'centroid' => [
+                            'lat',
+                            'lon',
+                        ],
+                        'tag_counts',
+                        'count',
+                    ],
+                ],
+            ])
+            ->assertJson([
+                'data' => [
+                    [
+                        'tag_counts' => [
+                            $politik->id => 1,
+                        ],
+                        'count' => 1,
+                        'stickers' => [
+                            [
+                                'id' => $linker_sticker->id,
+                                'state' => $history_linker_sticker->state->value,
+                                'last_seen' => $history_linker_sticker->last_seen->format('Y-m-d H:i:s'),
+                            ],
+                        ],
+                    ],
+                ],
+            ], );
+    }
+
     public function test_show_multiple_with_one_tag_and_no_date_complex_test()
     {
         $politik = Tag::factory()->create();

@@ -59,11 +59,16 @@ class ClusterApiController extends Controller
 
         if ($tags->isNotEmpty()) {
             if ($tags->count() === 1) {
-                // Single-tag: include its subTags
-                $tagMap = $tags->first()->subTags->flatMap(fn ($subTag) => collect(Tag::getDescendantIds($subTag->id))
-                    ->push($subTag->id)
-                    ->mapWithKeys(fn ($id) => [$id => $subTag->id])
-                );
+                // Single-tag: only include its subTags, except it doesnt have any
+                if ($tags->first()->subTags->isEmpty()) {
+                    $singleTag = $tags->first();
+                    $tagMap = collect([$singleTag->id => $singleTag->id]);
+                } else {
+                    $tagMap = $tags->first()->subTags->flatMap(fn ($subTag) => collect(Tag::getDescendantIds($subTag->id))
+                        ->push($subTag->id)
+                        ->mapWithKeys(fn ($id) => [$id => $subTag->id])
+                    );
+                }
             } else {
                 // Multiple tags: include each tag and its descendants
                 $tagMap = $tags->flatMap(fn ($tag) => collect(Tag::getDescendantIds($tag->id))
